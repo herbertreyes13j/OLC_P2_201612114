@@ -1,4 +1,5 @@
 var numberTabs = 1;
+
 $(document).on('ready', function() {
   $('#tabs .menu .tab').tab({});
   appendTab('tabs', 'Tab 1');
@@ -31,15 +32,29 @@ function appendTab(tab, nombre, contenido) {
       .append('<a class="item tabx" id="tAdd"><i class="add square icon"></i></a>');
 
     tt.append('<div class="ui tab tabc segment" data-tab="' + tn + '" id="tab-c-' + tn + '">'+'<textarea id="editor'+numberTabs+'"></textarea>' + 
-    '<button onclick="final(editor'+numberTabs+')"></button>'+' </div>')
+    '<button onclick="final(veditor'+numberTabs+')">Analizar</button>'+' </div>')
     $('#tabs .menu .tab').tab({});
+
+    var script= document.createElement("script");
+    script.innerHTML="var veditor"+numberTabs+" = CodeMirror.fromTextArea(document.getElementById('editor"+numberTabs+"'), {"+
+      'mode: "javascript",'+
+      'lineNumbers: true,'+
+  '});'+
+  '\nveditor'+numberTabs+'.save()';
+    console.log(script);
+    document.head.appendChild(script);
 
   }
   $("#tab-" + tn).click();
 }
 
 function final(id){
-    alert(id.value);
+    alert(id.getValue());
+
+    var resultado= gramatica.parse(id.getValue());
+    console.log(resultado);
+
+
 }
 
 function deleteTab(tab, nombre) {
