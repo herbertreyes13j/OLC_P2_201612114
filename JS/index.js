@@ -1,3 +1,4 @@
+
 var numberTabs = 1;
 
 $(document).on('ready', function() {
@@ -32,7 +33,7 @@ function appendTab(tab, nombre, contenido) {
       .append('<a class="item tabx" id="tAdd"><i class="add square icon"></i></a>');
 
     tt.append('<div class="ui tab tabc segment" data-tab="' + tn + '" id="tab-c-' + tn + '">'+'<textarea id="editor'+numberTabs+'"></textarea>' + 
-    '<button onclick="final(veditor'+numberTabs+')">Analizar</button>'+' </div>')
+    '<br><button onclick="final(veditor'+numberTabs+',consola'+numberTabs+')">Analizar</button><br>'+'<br><textarea id="consola'+numberTabs+'"></textarea>'+' </div>')
     $('#tabs .menu .tab').tab({});
 
     var script= document.createElement("script");
@@ -48,11 +49,56 @@ function appendTab(tab, nombre, contenido) {
   $("#tab-" + tn).click();
 }
 
-function final(id){
+function final(id,consola){
     alert(id.getValue());
+    consola.value='';
+    L_Error.getInstance().reiniciar();
+    try{
+      var resultado= gramatica.parse(id.getValue()); 
+      consola.value=L_Error.getInstance().getErrores();
+       console.log(resultado);
+       console.log(imprimir(resultado));
+    }catch(error){
+        consola.value=L_Error.getInstance().getErrores();
+        console.log(error);
+    }
+}
 
-    var resultado= gramatica.parse(id.getValue());
-    console.log(resultado);
+function imprimir(raiz){
+  var texto ="";
+  var contador=1;
+  texto+="digraph G{ \nNode[shape=BOX]\n";
+  texto+="Node0[label=\"" + escapar(raiz.tag +" | "+raiz.value) + "\"];\n";
+
+  recorrido("Node0",raiz);
+
+  texto+= "}";
+
+  return texto;
+
+  function recorrido(padre,hijos){
+    if(hijos === undefined || hijos === null) return;
+
+    //console.log(typeof hijos);
+
+    if(typeof hijos=="string")return;
+    for(var i=0;i<hijos.childs.length;i++){
+      console.log(typeof hijos.childs[i].tag);
+      if(typeof hijos.childs[i].tag=="undefined")continue;
+     var nombrehijo= "Node"+contador;
+      texto+=nombrehijo+"[label=\"" + escapar(hijos.childs[i].tag +" | "+hijos.childs[i].value) + "\"];\n";
+      texto+=padre+"->"+nombrehijo+";\n";
+      contador++;
+        recorrido(nombrehijo,hijos.childs[i]);
+    }
+    
+  }
+
+  function escapar(cadena) {
+    cadena = cadena.replace("\\", "\\\\");
+    cadena = cadena.replace("\"", "\\\"");
+    return cadena;
+}
 
 
 }
