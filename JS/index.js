@@ -83,7 +83,6 @@ function imprimir(raiz){
 
     if(typeof hijos=="string")return;
     for(var i=0;i<hijos.childs.length;i++){
-      console.log(typeof hijos.childs[i].tag);
       if(typeof hijos.childs[i].tag=="undefined")continue;
      var nombrehijo= "Node"+contador;
       texto+=nombrehijo+"[label=\"" + escapar(hijos.childs[i].tag +" | "+hijos.childs[i].value) + "\"];\n";

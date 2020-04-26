@@ -42,7 +42,12 @@
 "while"             return 'Tok_while' 
 "do"                return 'Tok_do'
 
-
+">="                return 'Tok_mayori'
+"<="                return 'Tok_menori'
+"==="               return 'Tok_igualr'
+"=="                return 'Tok_igual'
+"++"                return 'Tok_inc'
+"--"                return 'Tok_dec'
 ";"                 return 'Tok_pyc'
 "."                 return 'Tok_punto'
 ","                 return 'Tok_coma'
@@ -63,16 +68,11 @@
 "+"                 return 'Tok_mas'
 ">"                 return 'Tok_mayor'
 "<"                 return 'Tok_menor'
-">="                return 'Tok_mayori'
-"<="                return 'Tok_menori'
-"=="                return 'Tok_igual'
-"==="               return 'Tok_igualr'
 "!="                return 'Tok_diferente'
 "&"                 return 'Tok_and'
 "|"                 return 'Tok_or'
 "^"                 return 'Tok_xor'
-"++"                return 'Tok_inc'
-"--"                return 'Tok_dec'
+
 "?"                 return 'Tok_pre'
 ":"                 return 'Tok_bipunto'
 "$"                 return 'Tok_dolar'
@@ -90,7 +90,7 @@
 
 <<EOF>>				return 'EOF';
 .					{ console.error('Este es un error léxico: ' + yytext + ', en la linea: ' + yylloc.first_line + ', en la columna: ' + yylloc.first_column);
-                                          L_Error.getInstance().insertar(new N_Error("Lexico",yytext,"",""));
+                                          L_Error.getInstance().insertar(new N_Error("Lexico","Caracter: \" "+yytext+"\" no es valido" ,yylloc.first_line,yylloc.first_column));
                                           return null; }
 
 /lex
@@ -123,7 +123,9 @@ function AST_Node(tag, value){
     }
  };
 %}
+
 %left 'Tok_char' 'Tok_integer' 'Tok_double'
+%right 'Tok_asigna1'
 %right TERNARIO
 %left  'Tok_inc' 'Tok_dec'
 %left  'Tok_xor'
@@ -134,7 +136,8 @@ function AST_Node(tag, value){
 %left  'Tok_mas' 'Tok_menos'
 %left  'Tok_por' 'Tok_div' 'Tok_mod'
 %right 'Tok_pot'
-%right 'Tok_not'
+%right 'Tok_not' UMINUS
+%left PRE_ACCESO
 
 
 
@@ -151,9 +154,9 @@ SENTENCIAS: SENTENCIAS SENTENCIA{$1.addChilds($2); $$=$1;}
                     
 
 SENTENCIA : IMPORT {$$=$1}
-           |DECLARACION_1{$$=$1}
-           |DECLARACION_2{$$=$1}
-           |ASIGNACION{$$=$1}
+           |DECLARACION_1 Tok_pyc{$$=$1}
+           |DECLARACION_2 Tok_pyc{$$=$1}
+           |ASIGNACION Tok_pyc{$$=$1}
            |BLOQUE{$$=$1}
            |IF{$$=$1}
            |SWITCH{$$=$1}
@@ -163,12 +166,19 @@ SENTENCIA : IMPORT {$$=$1}
            |CONTINUE{$$=$1}
            |RETURN{$$=$1}
            |FUNCION{$$=$1}
-           |LLAMADA{$$=$1}
+           |LLAMADA Tok_pyc{$$=$1}
            |PRINT{$$=$1}
            |THROW{$$=$1}
-           |TRY_CATCH{$$=$1};
+           |TRY_CATCH{$$=$1}
+           |STRUCTURA{$$=$1}
+           |FOR{$$=$1}
+           |ACCESOS Tok_pyc{$$=$1}
+           |ASIGNACION_ARREGLO Tok_pyc{$$=$1}
+           |SENTENCIA error;
 
 
+ASIGNACION_ARREGLO: ACCESO_ARREGLO Tok_asigna1 EXP {$$= new AST_Node("ASIGNACION_ARREGLO","ASIGNACION_ARREGLO");
+                                                    $$.addChilds($1,$3) };
 
 IMPORT : Tok_import L_NOMBRES {$$= new AST_Node("IMPORT","IMPORT"); $$.addChilds($2)};
 
@@ -181,21 +191,28 @@ TIPO:  Tok_integer{$$=new AST_Node("TIPO","integer");}
       |Tok_double {$$=new AST_Node("TIPO","double");}
       |Tok_boolean{$$=new AST_Node("TIPO","boolean");}
       |Tok_ID     {$$=new AST_Node("TIPO",$1);}
-      |TIPO Tok_cor1 Tok_cor2{$$=new AST_Node("ARREGLO",$1);};
+      |Tok_integer Tok_cor1 Tok_cor2{$$=new AST_Node("ARREGLO",$1);}
+      |Tok_char Tok_cor1 Tok_cor2{$$=new AST_Node("ARREGLO",$1);}
+      |Tok_double Tok_cor1 Tok_cor2{$$=new AST_Node("ARREGLO",$1);}
+      |Tok_boolean Tok_cor1 Tok_cor2{$$=new AST_Node("ARREGLO",$1);}
+      |Tok_ID Tok_cor1 Tok_cor2{$$=new AST_Node("ARREGLO",$1);};
 
 ID_LIST: ID_LIST Tok_coma Tok_ID {$1.addChilds(new AST_Node("ID",$3)); $$=$1;}
         | Tok_ID {$$= new AST_Node("ID_LIST","ID_LIST"); $$.addChilds(new AST_Node("ID",$1))};
 
-DECLARACION_1: TIPO ID_LIST Tok_pyc {$$= new AST_Node("DECLARACION5","DECLARACION5"); $$.addChilds($1,$2)}
-              |TIPO ID_LIST Tok_asigna1 EXP Tok_pyc {$$=new AST_Node("DECLARACION1","DECLARACION1"); $$.addChilds($1,$2,$4);};
+DECLARACION_1: TIPO ID_LIST  {$$= new AST_Node("DECLARACION5","DECLARACION5"); $$.addChilds($1,$2)}
+              |TIPO ID_LIST Tok_asigna1 EXP{$$=new AST_Node("DECLARACION1","DECLARACION1"); $$.addChilds($1,$2,$4);};
              // | error {L_Error.getInstance().insertar(new N_Error("Sintactico",yytext,this._$.first_line,this._$.first_column));};
 
-DECLARACION_2: Tok_var Tok_ID Tok_asigna2 EXP Tok_pyc {$$=new AST_Node("DECLARACION2","DECLARACION2"); $$.addChilds($2,$4);}
-              |Tok_const Tok_ID Tok_asigna2 EXP Tok_pyc {$$=new AST_Node("DECLARACION3","DECLARACION3"); $$.addChilds($2,$4);}
-              |Tok_global Tok_ID Tok_asigna2 EXP Tok_pyc {$$=new AST_Node("DECLARACION4","DECLARACION4"); $$.addChilds($2,$4);};
+DECLARACION_2: Tok_var Tok_ID Tok_asigna2 EXP  {$$=new AST_Node("DECLARACION2","DECLARACION2"); $$.addChilds($2,$4);}
+              |Tok_const Tok_ID Tok_asigna2 EXP  {$$=new AST_Node("DECLARACION3","DECLARACION3"); $$.addChilds($2,$4);}
+              |Tok_global Tok_ID Tok_asigna2 EXP {$$=new AST_Node("DECLARACION4","DECLARACION4"); $$.addChilds($2,$4);};
              // | error {L_Error.getInstance().insertar(new N_Error("Sintactico",yytext,this._$.first_line,this._$.first_column));};
 
-ASIGNACION: Tok_ID Tok_asigna1 EXP Tok_pyc {$$=new AST_Node("ASIGNACION1","ASIGNACION1"); $$.addChilds($1,$3);};   
+ASIGNACION: Tok_ID Tok_asigna1 EXP {$$=new AST_Node("ASIGNACION","ASIGNACION"); 
+                                            $$.addChilds(new AST_Node("id",$1),$3);}
+            |ACCESOS Tok_asigna1 EXP {$$= new AST_Node("ASIGNACION","ASIGNACION");
+                                            $$.addChilds($1,$3)};   
 
 
 BLOQUE: Tok_llav1 SENTENCIAS Tok_llav2{$$= new AST_Node("BLOQUE","BLOQUE"); $$.addChilds($2)}
@@ -227,7 +244,6 @@ WHILE: Tok_while Tok_par1 EXP Tok_par2 BLOQUE{$$=new AST_Node("WHILE","WHILE"); 
 
 DO_WHILE: Tok_do BLOQUE Tok_while Tok_par1 EXP Tok_par2 Tok_pyc{$$=new AST_Node("DO_WHILE","DO_WHILE");$$.addChilds($2,$5)};
 
-
 CONTINUE: Tok_continue Tok_pyc{$$= new AST_Node("CONTINUE","CONTINUE")};
 
 RETURN: Tok_return EXP Tok_pyc{$$= new AST_Node("RETURN","RETURN");$$.addChilds($2)}
@@ -240,76 +256,133 @@ PARAMETROS: PARAMETROS Tok_coma PARAMETRO{$1.addChilds($3);$$=$1;}
            |PARAMETRO {$$=new AST_Node("PARAMETROS","PARAMETROS");$$.addChilds($1);};
 
 
-PARAMETRO: TIPO Tok_ID {$$=new AST_Node("PARAMETRO","PARAMETRO");$$.addChilds($1,$2)};
+PARAMETRO: TIPO Tok_ID {$$=new AST_Node("PARAMETRO","PARAMETRO");$$.addChilds($1,new AST_Node("id",$2))}
+           | {$$=new AST_Node("VACIO","VACIO");};
 
-LLAMADA: Tok_ID Tok_par1 L_LLAMADA Tok_par2 Tok_pyc;
+LLAMADA: Tok_ID Tok_par1 L_LLAMADA Tok_par2{$$= new AST_Node("LLAMADA","LLAMADA");
+                                            $$.addChilds(new AST_Node("id",$1),$3);} ;
 
-L_LLAMADA: L_LLAMADA Tok_coma P_LLAMADA
-          |P_LLAMADA;
-
-
-P_LLAMADA: Tok_dolar Tok_ID
-          |Tok_ID
-          |Tok_ID Tok_asigna1 EXP;
-
-PRINT: Tok_print Tok_par1 EXP Tok_par2  Tok_pyc
-      |Tok_print Tok_par1 EXP Tok_par2;
-
-THROW: Tok_throw EXP Tok_pyc;
-
-TRY_CATCH: Tok_try BLOQUE Tok_catch Tok_par1 Tok_ID Tok_ID Tok_par2 BLOQUE;
-
-ACCESOS: Tok_ID Tok_punto LACCESOS;
-
-LACCESOS: LACCESOS Tok_punto ACCESO
-        |ACCESO;
-
-ACCESO: Tok_ID 
-        |LLAMADA;
-
-EXP: EXP Tok_mas EXP            {$$= new AST_Node("EXP","EXP");$$.addChilds($1,new AST_Node("op",$2),$3);}
-    |EXP Tok_menos EXP            {$$= new AST_Node("EXP","EXP");$$.addChilds($1,new AST_Node("op",$2),$3);}
-    |EXP Tok_por EXP            {$$= new AST_Node("EXP","EXP");$$.addChilds($1,new AST_Node("op",$2),$3);}
-    |EXP Tok_div EXP            {$$= new AST_Node("EXP","EXP");$$.addChilds($1,new AST_Node("op",$2),$3);}
-    |EXP Tok_pot EXP            {$$= new AST_Node("EXP","EXP");$$.addChilds($1,new AST_Node("op",$2),$3);}
-    |EXP Tok_mod EXP            {$$= new AST_Node("EXP","EXP");$$.addChilds($1,new AST_Node("op",$2),$3);}
-    |Tok_menos EXP              {$$= new AST_Node("EXP","EXP");$$.addChilds(new AST_Node("op",$1),$2);}
-    |EXP Tok_diferente EXP            {$$= new AST_Node("EXP","EXP");$$.addChilds($1,new AST_Node("op",$2),$3);}
-    |EXP Tok_igual EXP            {$$= new AST_Node("EXP","EXP");$$.addChilds($1,new AST_Node("op",$2),$3);}
-    |EXP Tok_igualr EXP            {$$= new AST_Node("EXP","EXP");$$.addChilds($1,new AST_Node("op",$2),$3);}
-    |EXP Tok_mayor EXP            {$$= new AST_Node("EXP","EXP");$$.addChilds($1,new AST_Node("op",$2),$3);}
-    |EXP Tok_menor EXP            {$$= new AST_Node("EXP","EXP");$$.addChilds($1,new AST_Node("op",$2),$3);}
-    |EXP Tok_mayori EXP            {$$= new AST_Node("EXP","EXP");$$.addChilds($1,new AST_Node("op",$2),$3);}
-    |EXP Tok_menori EXP            {$$= new AST_Node("EXP","EXP");$$.addChilds($1,new AST_Node("op",$2),$3);}
-    |EXP Tok_and EXP            {$$= new AST_Node("EXP","EXP");$$.addChilds($1,new AST_Node("op",$2),$3);}
-    |EXP Tok_or EXP            {$$= new AST_Node("EXP","EXP");$$.addChilds($1,new AST_Node("op",$2),$3);}
-    |Tok_not EXP                {$$= new AST_Node("EXP","EXP");$$.addChilds(new AST_Node("op",$1),$2);}
-    |EXP Tok_xor EXP            {$$= new AST_Node("EXP","EXP");$$.addChilds($1,new AST_Node("op",$2),$3);}
-    |Tok_ID Tok_inc             {$$= new AST_Node("EXP","EXP");$$.addChilds(new AST_Node("Tok_string",$1),new AST_Node("op",$2));}
-    |Tok_ID Tok_dec             {$$= new AST_Node("EXP","EXP");$$.addChilds(new AST_Node("Tok_string",$1),new AST_Node("op",$2));}
-    |Tok_string                 {$$= new AST_Node("EXP","EXP");$$.addChilds(new AST_Node("Tok_string",$1));}
-    |Tok_entero                 {$$= new AST_Node("EXP","EXP");$$.addChilds(new AST_Node("integer",$1));}
-    |Tok_doble                  {$$= new AST_Node("EXP","EXP");$$.addChilds(new AST_Node("double",$1));}
-    |Tok_caracter               {$$= new AST_Node("EXP","EXP");$$.addChilds(new AST_Node("char",$1));}
-    |Tok_true                   {$$= new AST_Node("EXP","EXP");$$.addChilds(new AST_Node("true",$1));}
-    |Tok_false                  {$$= new AST_Node("EXP","EXP");$$.addChilds(new AST_Node("false",$1));}
-    |Tok_null                   {$$= new AST_Node("EXP","EXP");$$.addChilds(new AST_Node("null",$1));}
-    |Tok_ID                     {$$= new AST_Node("EXP","EXP");$$.addChilds(new AST_Node("id",$1));}
-    |Tok_par1 EXP Tok_par2      {$$=$2}
-    |Tok_par1 Tok_char Tok_par2 EXP{$$= new AST_Node("EXP","EXP");var aux=new AST_Node("CASTEO","CASTEO"); aux.addChilds(new AST_Node("TIPO",$2),$4); $$.addChilds(aux);}
-    |Tok_par1 Tok_integer Tok_par2 EXP{$$= new AST_Node("EXP","EXP");var aux=new AST_Node("CASTEO","CASTEO"); aux.addChilds(new AST_Node("TIPO",$2),$4); $$.addChilds(aux);}
-    |Tok_par1 Tok_double Tok_par2 EXP{$$= new AST_Node("EXP","EXP");var aux=new AST_Node("CASTEO","CASTEO"); aux.addChilds(new AST_Node("TIPO",$2),$4); $$.addChilds(aux);}
-    |LLAMADA                    {$$= new AST_Node("EXP","EXP");$$.addChilds($1)}
-    |ACCESOS                    {$$= new AST_Node("EXP","EXP");$$.addChilds($1)}
-    |Tok_strc Tok_ID Tok_cor1 EXP Tok_cor2
-    |LISTA;
+L_LLAMADA: L_LLAMADA Tok_coma P_LLAMADA {$1.addChilds($3);$$=$1;}
+          |P_LLAMADA {$$= new AST_Node("PARAMETROS","PARAMETROS");$$.addChilds($1)};
 
 
+P_LLAMADA: Tok_dolar Tok_ID {$$=new AST_Node("VALOR","VALOR");$$.addChilds(new AST_Node("id",$2));}
+          |EXP {$$=$1}
+          |Tok_ID Tok_asigna1 EXP {$$= new AST_Node("ASIGNACION","ASIGNACION");
+                                   $$.addChilds(new AST_Node("id",$1),$2);}
+          |{$$= new AST_Node("VACIO","VACIO")};
 
-LISTA: Tok_llav1 ELEMENTOS Tok_llav2;
+PRINT: Tok_print Tok_par1 EXP Tok_par2 Tok_pyc {$$= new AST_Node("PRINT","PRINT"); $$.addChilds($3);}
+      |Tok_print Tok_par1 EXP Tok_par2 {$$= new AST_Node("PRINT","PRINT"); $$.addChilds($3);};
 
-ELEMENTOS: ELEMENTOS Tok_coma EXP
-          |EXP;
+THROW: Tok_throw Tok_strc LLAMADA Tok_pyc {$$= new AST_Node("THROW","THROW");
+                                        $$.addChilds($3)};
 
+TRY_CATCH: Tok_try BLOQUE Tok_catch Tok_par1 Tok_ID Tok_ID Tok_par2 BLOQUE
+           {$$=new AST_Node("TRY_CATCH","TRY_CATCH");
+            $$.addChilds($2,new AST_Node("id",$5),new AST_Node("id",$6),$8)};
+
+ACCESOS: Tok_ID Tok_punto LACCESOS              {$$=new AST_Node("ACCESOS","ACCESOS");
+                                                 $$.addChilds(new AST_Node("id",$1),$3)}
+         |ACCESO_ARREGLO Tok_punto LACCESOS     {$$=new AST_Node("ACCESOS","ACCESOS");
+                                                 $$.addChilds($1,$3)}
+         |LLAMADA Tok_punto LACCESOS            {$$=new AST_Node("ACCESOS","ACCESOS");
+                                                 $$.addChilds($1,$3)};
+
+LACCESOS:LACCESOS Tok_punto ACCESO {$1.addChilds($3);$$=$1}
+        |ACCESO {$$=new AST_Node("ACCESOS","ACCESOS");$$.addChilds($1)};  
+
+ACCESO: Tok_ID          {$$=new AST_Node("id",$1)}
+        |LLAMADA        {$$=$1}
+        |ACCESO_ARREGLO {$$=$1} ;
+
+
+FOR: Tok_for Tok_par1 INICIO Tok_pyc FCONDICION Tok_pyc FINAL Tok_par2 BLOQUE {$$=new AST_Node("FOR","FOR");
+                                                                              $$.addChilds($3,$5,$7,$9)};
+
+INICIO: DECLARACION_1{$$=new AST_Node("INICIO","INICIO");$$.addChilds($1)}
+       |ASIGNACION{$$=new AST_Node("INICIO","INICIO");$$.addChilds($1)}
+       |{$$=new AST_Node("INICIO","INICIO");};
+
+FCONDICION:EXP {$$=new AST_Node("CONDICION","CONDICION");$$.addChilds($1);}
+        |{$$=new AST_Node("CONDICION","CONDICION");} ;
+
+FINAL: EXP {$$=new AST_Node("FINAL","FINAL");$$.addChilds($1)}
+      |ASIGNACION {$$=new AST_Node("FINAL","FINAL");$$.addChilds($1)}
+      |{$$=new AST_Node("FINAL","FINAL");};
+
+STRUCTURA: Tok_define Tok_ID Tok_as Tok_cor1 LISTA_ATRIBUTOS Tok_cor2 Tok_pyc
+           {$$=new AST_Node("ESTRUCTURA","ESTRUCTURA"); $$.addChilds(new AST_Node("id",$2),$5);};
+
+LISTA_ATRIBUTOS: LISTA_ATRIBUTOS Tok_coma ATRIBUTO {$1.addChilds($3);$$=$1}
+                |ATRIBUTO{$$=new AST_Node("ATRIBUTOS","ATRIBUTS");$$.addChilds($1)};
+
+ATRIBUTO: TIPO Tok_ID  {$$=new AST_Node("ATRIBUTO","ATRIBUTO");$$.addChilds($1,new AST_Node("id",$2));}
+         |ASIGNACION   {$$=new AST_Node("ATRIBUTO","ATRIBUTO");$$.addChilds($1)}
+         |ASIGNACION_ARREGLO {$$=new AST_Node("ATRIBUTO","ATRIBUTO");$$.addChilds($1)};
+
+
+EXP: EXP Tok_mas EXP                    {$$= new AST_Node("EXP","EXP");$$.addChilds($1,new AST_Node("op",$2),$3);}
+    |EXP Tok_menos EXP                  {$$= new AST_Node("EXP","EXP");$$.addChilds($1,new AST_Node("op",$2),$3);}
+    |EXP Tok_por EXP                    {$$= new AST_Node("EXP","EXP");$$.addChilds($1,new AST_Node("op",$2),$3);}
+    |EXP Tok_div EXP                    {$$= new AST_Node("EXP","EXP");$$.addChilds($1,new AST_Node("op",$2),$3);}
+    |EXP Tok_pot EXP                    {$$= new AST_Node("EXP","EXP");$$.addChilds($1,new AST_Node("op",$2),$3);}
+    |EXP Tok_mod EXP                    {$$= new AST_Node("EXP","EXP");$$.addChilds($1,new AST_Node("op",$2),$3);}
+    |Tok_menos EXP %prec UMINUS         {$$= new AST_Node("EXP","EXP");$$.addChilds(new AST_Node("op",$1),$2);}
+    |EXP Tok_diferente EXP              {$$= new AST_Node("EXP","EXP");$$.addChilds($1,new AST_Node("op",$2),$3);}
+    |EXP Tok_igual EXP                  {$$= new AST_Node("EXP","EXP");$$.addChilds($1,new AST_Node("op",$2),$3);}
+    |EXP Tok_igualr EXP                 {$$= new AST_Node("EXP","EXP");$$.addChilds($1,new AST_Node("op",$2),$3);}
+    |EXP Tok_mayor EXP                  {$$= new AST_Node("EXP","EXP");$$.addChilds($1,new AST_Node("op",$2),$3);}
+    |EXP Tok_menor EXP                  {$$= new AST_Node("EXP","EXP");$$.addChilds($1,new AST_Node("op",$2),$3);}
+    |EXP Tok_mayori EXP                 {$$= new AST_Node("EXP","EXP");$$.addChilds($1,new AST_Node("op",$2),$3);}
+    |EXP Tok_menori EXP                 {$$= new AST_Node("EXP","EXP");$$.addChilds($1,new AST_Node("op",$2),$3);}
+    |EXP Tok_and EXP                    {$$= new AST_Node("EXP","EXP");$$.addChilds($1,new AST_Node("op",$2),$3);}
+    |EXP Tok_or EXP                     {$$= new AST_Node("EXP","EXP");$$.addChilds($1,new AST_Node("op",$2),$3);}
+    |Tok_not EXP                        {$$= new AST_Node("EXP","EXP");$$.addChilds(new AST_Node("op",$1),$2);}
+    |EXP Tok_xor EXP                    {$$= new AST_Node("EXP","EXP");$$.addChilds($1,new AST_Node("op",$2),$3);}
+    |Tok_ID Tok_inc                     {$$= new AST_Node("EXP","EXP");$$.addChilds(new AST_Node("id",$1),new AST_Node("op",$2));}
+    |Tok_ID Tok_dec                     {$$= new AST_Node("EXP","EXP");$$.addChilds(new AST_Node("id",$1),new AST_Node("op",$2));}
+    |Tok_par1 EXP Tok_par2              {$$=$2}
+    |Tok_par1 Tok_char Tok_par2 EXP     {$$= new AST_Node("EXP","EXP");var aux=new AST_Node("CASTEO","CASTEO"); aux.addChilds(new AST_Node("TIPO",$2),$4); $$.addChilds(aux);}
+    |Tok_par1 Tok_integer Tok_par2 EXP  {$$= new AST_Node("EXP","EXP");var aux=new AST_Node("CASTEO","CASTEO"); aux.addChilds(new AST_Node("TIPO",$2),$4); $$.addChilds(aux);}
+    |Tok_par1 Tok_double Tok_par2 EXP   {$$= new AST_Node("EXP","EXP");var aux=new AST_Node("CASTEO","CASTEO"); aux.addChilds(new AST_Node("TIPO",$2),$4); $$.addChilds(aux);}
+    |LLAMADA                            {$$= new AST_Node("EXP","EXP");$$.addChilds($1)}
+    |ACCESOS                            {$$= new AST_Node("EXP","EXP");$$.addChilds($1)}
+    |Tok_strc INCIALIZACION_ARREGLO     {$$=new AST_Node("EXP","EXP");$$.addChilds($2)}
+    |LISTA                              {$$=new AST_Node("EXP","EXP");$$.addChilds($1)}
+    |ACCESO_ARREGLO %prec PRE_ACCESO    {$$=new AST_Node("EXP","EXP");$$.addChilds($1)}
+    |Tok_string                         {$$= new AST_Node("EXP","EXP");$$.addChilds(new AST_Node("string",$1));}
+    |Tok_entero                         {$$= new AST_Node("EXP","EXP");$$.addChilds(new AST_Node("integer",$1));}
+    |Tok_doble                          {$$= new AST_Node("EXP","EXP");$$.addChilds(new AST_Node("double",$1));}
+    |Tok_caracter                       {$$= new AST_Node("EXP","EXP");$$.addChilds(new AST_Node("char",$1));}
+    |Tok_true                           {$$= new AST_Node("EXP","EXP");$$.addChilds(new AST_Node("true",$1));}
+    |Tok_false                          {$$= new AST_Node("EXP","EXP");$$.addChilds(new AST_Node("false",$1));}
+    |Tok_null                           {$$= new AST_Node("EXP","EXP");$$.addChilds(new AST_Node("null",$1));}
+    |Tok_ID                             {$$= new AST_Node("EXP","EXP");$$.addChilds(new AST_Node("id",$1));}
+    |INSTANCIA                          {$$= new AST_Node("EXP","EXP");$$.addChilds($1);};
+
+
+ACCESO_ARREGLO:Tok_ID Tok_cor1 EXP Tok_cor2 {$$= new AST_Node("ACCESO_ARREGLO","ACCESO_ARREGLO");
+                                            $$.addChilds(new AST_Node("id",$1),$3)}
+              |LLAMADA Tok_cor1 EXP Tok_cor2 {$$=new AST_Node("ACCESO_LLAMADA","ACCESO_LLAMADA");
+                                             $$.addChilds($1,$3);};
+
+INCIALIZACION_ARREGLO: Tok_ID Tok_cor1 EXP Tok_cor2 {$$=new AST_Node("INICIALIZACION","INICIALIZACION");
+                                                        $$.addChilds(new AST_Node("TIPO",$1),$3)} 
+                      | Tok_integer Tok_cor1 EXP Tok_cor2{$$=new AST_Node("INICIALIZACION","INICIALIZACION");
+                                                         $$.addChilds(new AST_Node("TIPO","integer"),$3)} 
+                      |Tok_char Tok_cor1 EXP Tok_cor2   {$$=new AST_Node("INICIALIZACION","INICIALIZACION");
+                                                        $$.addChilds(new AST_Node("TIPO","char"),$3)}
+                      |Tok_double Tok_cor1 EXP Tok_cor2 {$$=new AST_Node("INICIALIZACION","INICIALIZACION");
+                                                        $$.addChilds(new AST_Node("TIPO","double"),$3)}
+                      |Tok_boolean Tok_cor1 EXP Tok_cor2{$$=new AST_Node("INICIALIZACION","INICIALIZACION");
+                                                        $$.addChilds(new AST_Node("TIPO","boolean"),$3)}; 
+
+LISTA: Tok_llav1 ELEMENTOS Tok_llav2 {$$= new AST_Node("LISTA","LISTA"); $$.addChilds($2)};
+
+ELEMENTOS: ELEMENTOS Tok_coma EXP {$1.addChilds($3);$$=$1;}
+          |EXP {$$=new AST_Node("ELEMENTOS","ELEMENTOS");$$.addChilds($1);};
+
+INSTANCIA: Tok_strc LLAMADA{$$= new AST_Node("INSTANCIA","INSTANCIA");$$.addChilds($2)};
 
 TERNARIO: Tok_pre;
