@@ -160,21 +160,31 @@ SENTENCIA : IMPORT {$$=$1}
            |BLOQUE{$$=$1}
            |IF{$$=$1}
            |SWITCH{$$=$1}
-           |BREAK{$$=$1}
+           |BREAK Tok_pyc{$$=$1}
            |WHILE{$$=$1}
-           |DO_WHILE{$$=$1}
-           |CONTINUE{$$=$1}
-           |RETURN{$$=$1}
+           |DO_WHILE Tok_pyc{$$=$1}
+           |CONTINUE Tok_pyc{$$=$1}
+           |RETURN Tok_pyc{$$=$1}
            |FUNCION{$$=$1}
            |LLAMADA Tok_pyc{$$=$1}
            |PRINT{$$=$1}
            |THROW{$$=$1}
            |TRY_CATCH{$$=$1}
-           |STRUCTURA{$$=$1}
+           |STRUCTURA Tok_pyc{$$=$1}
            |FOR{$$=$1}
            |ACCESOS Tok_pyc{$$=$1}
            |ASIGNACION_ARREGLO Tok_pyc{$$=$1}
-           |SENTENCIA error;
+           |ASIGNACION error {L_Error.getInstance().insertar(new N_Error("Sintactico","Error Recuperado: Falta signo: ;",this._$.first_line,@1.last_column));}
+           |LLAMADA error {L_Error.getInstance().insertar(new N_Error("Sintactico","Error Recuperado: Falta signo: ;",this._$.first_line,@1.last_column));}
+           |ACCESOS error {L_Error.getInstance().insertar(new N_Error("Sintactico","Error Recuperado: Falta signo: ;",this._$.first_line,@1.last_column));}
+           |ASIGNACION_ARREGLO error {L_Error.getInstance().insertar(new N_Error("Sintactico","Error Recuperado: Falta signo: ;",this._$.first_line,@1.last_column));}
+           |DO_WHILE error {L_Error.getInstance().insertar(new N_Error("Sintactico","Error Recuperado: Falta signo: ;",this._$.first_line,@1.last_column));}
+           |BREAK error {L_Error.getInstance().insertar(new N_Error("Sintactico","Error Recuperado: Falta signo: ;",this._$.first_line,@1.last_column));}
+           |CONTINUE error {L_Error.getInstance().insertar(new N_Error("Sintactico","Error Recuperado: Falta signo: ;",this._$.first_line,@1.last_column));}
+           |RETURN error {L_Error.getInstance().insertar(new N_Error("Sintactico","Error Recuperado: Falta signo: ;",this._$.first_line,@1.last_column));}                      
+           |DECLARACION_1 error {L_Error.getInstance().insertar(new N_Error("Sintactico","Error Recuperado: Falta signo: ;",this._$.first_line,@1.last_column));}
+           |DECLARACION_2 error {L_Error.getInstance().insertar(new N_Error("Sintactico","Error Recuperado: Falta signo: ;",this._$.first_line,@1.last_column));}
+           |STRUCTURA error {L_Error.getInstance().insertar(new N_Error("Sintactico","Error Recuperado: Falta signo: ;",this._$.first_line,@1.last_column));};
 
 
 ASIGNACION_ARREGLO: ACCESO_ARREGLO Tok_asigna1 EXP {$$= new AST_Node("ASIGNACION_ARREGLO","ASIGNACION_ARREGLO");
@@ -204,9 +214,9 @@ DECLARACION_1: TIPO ID_LIST  {$$= new AST_Node("DECLARACION5","DECLARACION5"); $
               |TIPO ID_LIST Tok_asigna1 EXP{$$=new AST_Node("DECLARACION1","DECLARACION1"); $$.addChilds($1,$2,$4);};
              // | error {L_Error.getInstance().insertar(new N_Error("Sintactico",yytext,this._$.first_line,this._$.first_column));};
 
-DECLARACION_2: Tok_var Tok_ID Tok_asigna2 EXP  {$$=new AST_Node("DECLARACION2","DECLARACION2"); $$.addChilds($2,$4);}
-              |Tok_const Tok_ID Tok_asigna2 EXP  {$$=new AST_Node("DECLARACION3","DECLARACION3"); $$.addChilds($2,$4);}
-              |Tok_global Tok_ID Tok_asigna2 EXP {$$=new AST_Node("DECLARACION4","DECLARACION4"); $$.addChilds($2,$4);};
+DECLARACION_2: Tok_var Tok_ID Tok_asigna2 EXP  {$$=new AST_Node("DECLARACION2","DECLARACION2"); $$.addChilds(new AST_Node("id",$2),$4);}
+              |Tok_const Tok_ID Tok_asigna2 EXP  {$$=new AST_Node("DECLARACION3","DECLARACION3"); $$.addChilds(new AST_Node("id",$2),$4);}
+              |Tok_global Tok_ID Tok_asigna2 EXP {$$=new AST_Node("DECLARACION4","DECLARACION4"); $$.addChilds(new AST_Node("id",$2),$4);};
              // | error {L_Error.getInstance().insertar(new N_Error("Sintactico",yytext,this._$.first_line,this._$.first_column));};
 
 ASIGNACION: Tok_ID Tok_asigna1 EXP {$$=new AST_Node("ASIGNACION","ASIGNACION"); 
@@ -238,16 +248,16 @@ CASO: Tok_case EXP Tok_bipunto SENTENCIAS   {$$= new AST_Node("CASO","CASO"); $$
 
 DEFAULT: Tok_default Tok_bipunto SENTENCIAS {$$=new AST_Node("DEFAULT","DEFAULT");$$.addChilds($3);};
 
-BREAK: Tok_break Tok_pyc{$$=new AST_Node("BREAK","BREAK")};
-
+BREAK: Tok_break {$$=new AST_Node("BREAK","BREAK")};
 WHILE: Tok_while Tok_par1 EXP Tok_par2 BLOQUE{$$=new AST_Node("WHILE","WHILE"); $$.addChilds($3,$5)};
 
-DO_WHILE: Tok_do BLOQUE Tok_while Tok_par1 EXP Tok_par2 Tok_pyc{$$=new AST_Node("DO_WHILE","DO_WHILE");$$.addChilds($2,$5)};
+DO_WHILE: Tok_do BLOQUE Tok_while Tok_par1 EXP Tok_par2;
 
-CONTINUE: Tok_continue Tok_pyc{$$= new AST_Node("CONTINUE","CONTINUE")};
+CONTINUE: Tok_continue{$$= new AST_Node("CONTINUE","CONTINUE")};
 
-RETURN: Tok_return EXP Tok_pyc{$$= new AST_Node("RETURN","RETURN");$$.addChilds($2)}
-        |Tok_return Tok_pyc {$$= new AST_Node("RETURN","RETURN")};
+RETURN: Tok_return EXP{$$= new AST_Node("RETURN","RETURN");$$.addChilds($2)}
+
+        |Tok_return {$$= new AST_Node("RETURN","RETURN")};
 
 FUNCION:  TIPO Tok_ID Tok_par1 PARAMETROS Tok_par2 BLOQUE {$$=new AST_Node("FUNCION","FUNCION");$$.addChilds($1,new AST_Node("id",$2),$4,$6);}
         | Tok_void Tok_ID Tok_par1 PARAMETROS Tok_par2 BLOQUE{$$=new AST_Node("FUNCION","FUNCION");$$.addChilds(new AST_Node("TIPO",$1),new AST_Node("id",$2),$4,$6);};
@@ -311,7 +321,7 @@ FINAL: EXP {$$=new AST_Node("FINAL","FINAL");$$.addChilds($1)}
       |ASIGNACION {$$=new AST_Node("FINAL","FINAL");$$.addChilds($1)}
       |{$$=new AST_Node("FINAL","FINAL");};
 
-STRUCTURA: Tok_define Tok_ID Tok_as Tok_cor1 LISTA_ATRIBUTOS Tok_cor2 Tok_pyc
+STRUCTURA: Tok_define Tok_ID Tok_as Tok_cor1 LISTA_ATRIBUTOS Tok_cor2 
            {$$=new AST_Node("ESTRUCTURA","ESTRUCTURA"); $$.addChilds(new AST_Node("id",$2),$5);};
 
 LISTA_ATRIBUTOS: LISTA_ATRIBUTOS Tok_coma ATRIBUTO {$1.addChilds($3);$$=$1}
