@@ -251,7 +251,7 @@ DEFAULT: Tok_default Tok_bipunto SENTENCIAS {$$=new AST_Node("DEFAULT","DEFAULT"
 BREAK: Tok_break {$$=new AST_Node("BREAK","BREAK")};
 WHILE: Tok_while Tok_par1 EXP Tok_par2 BLOQUE{$$=new AST_Node("WHILE","WHILE"); $$.addChilds($3,$5)};
 
-DO_WHILE: Tok_do BLOQUE Tok_while Tok_par1 EXP Tok_par2;
+DO_WHILE: Tok_do BLOQUE Tok_while Tok_par1 EXP Tok_par2{$$=new AST_Node("DO_WHILE","DO_WHILE");$$.addChilds($2,$5)};
 
 CONTINUE: Tok_continue{$$= new AST_Node("CONTINUE","CONTINUE")};
 

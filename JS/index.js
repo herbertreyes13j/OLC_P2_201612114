@@ -55,9 +55,11 @@ function final(id,consola){
     L_Error.getInstance().reiniciar();
     try{
       var resultado= gramatica.parse(id.getValue()); 
-      consola.value=L_Error.getInstance().getErrores();
-       console.log(resultado);
+      
        console.log(imprimir(resultado));
+       var interprete = new Interprete();
+       interprete.analizar(resultado);
+       consola.value=L_Error.getInstance().getErrores();
     }catch(error){
         consola.value=L_Error.getInstance().getErrores();
         console.log(error);

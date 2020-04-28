@@ -211,6 +211,9 @@ break;
 case 74:
 this.$=new AST_Node("WHILE","WHILE"); this.$.addChilds($$[$0-2],$$[$0])
 break;
+case 75:
+this.$=new AST_Node("DO_WHILE","DO_WHILE");this.$.addChilds($$[$0-4],$$[$0-1])
+break;
 case 76:
 this.$= new AST_Node("CONTINUE","CONTINUE")
 break;
