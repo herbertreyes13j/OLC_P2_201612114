@@ -90,7 +90,7 @@ case 2:
 $$[$0-1].addChilds($$[$0]); this.$=$$[$0-1];
 break;
 case 3:
-this.$= new AST_Node("SENTENCIAS","SENTENCIAS");
+this.$= new AST_Node("SENTENCIAS","SENTENCIAS",this._$.first_line,_$[$0].last_column);
                       this.$.addChilds($$[$0]);
 break;
 case 4: case 8: case 9: case 10: case 12: case 16: case 18: case 19: case 20: case 22: case 89: case 102: case 103:
@@ -103,307 +103,316 @@ case 25: case 26: case 27: case 28: case 29: case 30: case 31: case 32: case 33:
 L_Error.getInstance().insertar(new N_Error("Sintactico","Error Recuperado: Falta signo: ;",this._$.first_line,_$[$0-1].last_column));
 break;
 case 36:
-this.$= new AST_Node("ASIGNACION_ARREGLO","ASIGNACION_ARREGLO");
+this.$= new AST_Node("ASIGNACION_ARREGLO","ASIGNACION_ARREGLO",this._$.first_line,_$[$0-1].last_column);
                                                     this.$.addChilds($$[$0-2],$$[$0]) 
 break;
 case 37:
-this.$= new AST_Node("IMPORT","IMPORT"); this.$.addChilds($$[$0])
+this.$= new AST_Node("IMPORT","IMPORT",this._$.first_line,_$[$0-1].last_column); this.$.addChilds($$[$0])
 break;
 case 38:
-$$[$0-2].addChilds(new AST_Node("NOMBRE",$$[$0])); this.$=$$[$0-2];
+$$[$0-2].addChilds(new AST_Node("NOMBRE",$$[$0],this._$.first_line,_$[$0].first_column)); this.$=$$[$0-2];
 break;
 case 39:
-this.$= new AST_Node("NOMBRES","NOMBRES");
-                        this.$.addChilds(new AST_Node("NOMBRE",$$[$0]));
+this.$= new AST_Node("NOMBRES","NOMBRES",this._$.first_line,_$[$0].first_column);
+                        this.$.addChilds(new AST_Node("NOMBRE",$$[$0],this._$.first_line,_$[$0].last_column));
 break;
 case 40:
-this.$=new AST_Node("TIPO","integer");
+this.$=new AST_Node("TIPO","integer",this._$.first_line,_$[$0].last_column);
 break;
 case 41:
-this.$=new AST_Node("TIPO","char");
+this.$=new AST_Node("TIPO","char",this._$.first_line,_$[$0].last_column);
 break;
 case 42:
-this.$=new AST_Node("TIPO","double");
+this.$=new AST_Node("TIPO","double",this._$.first_line,_$[$0].last_column);
 break;
 case 43:
-this.$=new AST_Node("TIPO","boolean");
+this.$=new AST_Node("TIPO","boolean",this._$.first_line,_$[$0].last_column);
 break;
 case 44:
-this.$=new AST_Node("TIPO",$$[$0]);
+this.$=new AST_Node("TIPO",$$[$0],this._$.first_line,_$[$0].last_column);
 break;
 case 45: case 46: case 47: case 48: case 49:
-this.$=new AST_Node("ARREGLO",$$[$0-2]);
+this.$=new AST_Node("ARREGLO",$$[$0-2],this._$.first_line,_$[$0-2].last_column);
 break;
 case 50:
-$$[$0-2].addChilds(new AST_Node("ID",$$[$0])); this.$=$$[$0-2];
+$$[$0-2].addChilds(new AST_Node("ID",$$[$0],this._$.first_line,_$[$0].first_column)); this.$=$$[$0-2];
 break;
 case 51:
-this.$= new AST_Node("ID_LIST","ID_LIST"); this.$.addChilds(new AST_Node("ID",$$[$0]))
+this.$= new AST_Node("ID_LIST","ID_LIST"); this.$.addChilds(new AST_Node("ID",$$[$0],this._$.first_line,_$[$0].first_column))
 break;
 case 52:
-this.$= new AST_Node("DECLARACION5","DECLARACION5"); this.$.addChilds($$[$0-1],$$[$0])
+this.$= new AST_Node("DECLARACION5","DECLARACION5",this._$.first_line,_$[$0-1].first_column); this.$.addChilds($$[$0-1],$$[$0])
 break;
 case 53:
-this.$=new AST_Node("DECLARACION1","DECLARACION1"); this.$.addChilds($$[$0-3],$$[$0-2],$$[$0]);
+this.$=new AST_Node("DECLARACION1","DECLARACION1",this._$.first_line,_$[$0-3].first_column); this.$.addChilds($$[$0-3],$$[$0-2],$$[$0]);
 break;
 case 54:
-this.$=new AST_Node("DECLARACION2","DECLARACION2"); this.$.addChilds(new AST_Node("id",$$[$0-2]),$$[$0]);
+this.$=new AST_Node("DECLARACION2","DECLARACION2",this._$.first_line,_$[$0-3].last_column); this.$.addChilds(new AST_Node("id",$$[$0-2],this._$.first_line,_$[$0-2].last_column),$$[$0]);
 break;
 case 55:
-this.$=new AST_Node("DECLARACION3","DECLARACION3"); this.$.addChilds(new AST_Node("id",$$[$0-2]),$$[$0]);
+this.$=new AST_Node("DECLARACION3","DECLARACION3",this._$.first_line,_$[$0-3].last_column); this.$.addChilds(new AST_Node("id",$$[$0-2],this._$.first_line,_$[$0-2].last_column),$$[$0]);
 break;
 case 56:
-this.$=new AST_Node("DECLARACION4","DECLARACION4"); this.$.addChilds(new AST_Node("id",$$[$0-2]),$$[$0]);
+this.$=new AST_Node("DECLARACION4","DECLARACION4",this._$.first_line,_$[$0-3].last_column); this.$.addChilds(new AST_Node("id",$$[$0-2],this._$.first_line,_$[$0-2].last_column),$$[$0]);
 break;
 case 57:
-this.$=new AST_Node("ASIGNACION","ASIGNACION"); 
-                                            this.$.addChilds(new AST_Node("id",$$[$0-2]),$$[$0]);
+this.$=new AST_Node("ASIGNACION","ASIGNACION",this._$.first_line,_$[$0-2].last_column); 
+                                            this.$.addChilds(new AST_Node("id",$$[$0-2],this._$.first_line,_$[$0-2].last_column),$$[$0]);
 break;
 case 58:
-this.$= new AST_Node("ASIGNACION","ASIGNACION");
+this.$= new AST_Node("ASIGNACION","ASIGNACION",this._$.first_line,_$[$0-2].last_column);
                                             this.$.addChilds($$[$0-2],$$[$0])
 break;
 case 59:
-this.$= new AST_Node("BLOQUE","BLOQUE"); this.$.addChilds($$[$0-1])
+this.$= new AST_Node("BLOQUE","BLOQUE",this._$.first_line,_$[$0-2].last_column); this.$.addChilds($$[$0-1])
 break;
 case 60:
-this.$= new AST_Node("BLOQUE","BLOQUE");
+this.$= new AST_Node("BLOQUE","BLOQUE",this._$.first_line,_$[$0-1].last_column);
 break;
 case 61:
-this.$= new AST_Node("IF","IF");this.$.addChilds($$[$0-2],$$[$0])
+this.$= new AST_Node("IF","IF",this._$.first_line,_$[$0-4].last_column);this.$.addChilds($$[$0-2],$$[$0])
 break;
 case 62:
-this.$= new AST_Node("IF","IF"); this.$.addChilds($$[$0-3],$$[$0-1],$$[$0]);
+this.$= new AST_Node("IF","IF",this._$.first_line,_$[$0-5].last_column); this.$.addChilds($$[$0-3],$$[$0-1],$$[$0]);
 break;
 case 63:
-this.$= new AST_Node("IF","IF"); var aux = new AST_Node("ELSE","ELSE"); aux.addChilds($$[$0]);this.$.addChilds($$[$0-4],$$[$0-2],aux)
+this.$= new AST_Node("IF","IF",this._$.first_line,_$[$0-6].last_column); var aux = new AST_Node("ELSE","ELSE",this._$.first_line,_$[$0-1].last_column); aux.addChilds($$[$0]);this.$.addChilds($$[$0-4],$$[$0-2],aux)
 break;
 case 64:
-var aux = new AST_Node("ELIF","ELIF");aux.addChilds($$[$0-2],$$[$0]);$$[$0-6].addChilds(aux);this.$=$$[$0-6];
+var aux = new AST_Node("ELIF","ELIF",this._$.first_line,_$[$0-6].last_column);aux.addChilds($$[$0-2],$$[$0]);$$[$0-6].addChilds(aux);this.$=$$[$0-6];
 break;
 case 65:
-this.$ = new AST_Node("ELIF","ELIF");var aux2 = new AST_Node("ELIF","ELIF");aux2.addChilds($$[$0-2],$$[$0]);this.$.addChilds(aux2)
+this.$ = new AST_Node("ELIF","ELIF",this._$.first_line,_$[$0-5].last_column);var aux2 = new AST_Node("ELIF","ELIF",this._$.first_line,_$[$0-5].last_column);aux2.addChilds($$[$0-2],$$[$0]);this.$.addChilds(aux2)
 break;
 case 66:
-var aux = new AST_Node("ELSE","ELSE");aux.addChilds($$[$0]); $$[$0-2].addChilds(aux);this.$=$$[$0-2];
+var aux = new AST_Node("ELSE","ELSE",this._$.first_line,_$[$0-1].last_column);aux.addChilds($$[$0]); $$[$0-2].addChilds(aux);this.$=$$[$0-2];
 break;
 case 67:
-this.$= new AST_Node("SWITCH","SWITCH");this.$.addChilds($$[$0-4],$$[$0-1])
+this.$= new AST_Node("SWITCH","SWITCH",this._$.first_line,_$[$0-6].last_column);this.$.addChilds($$[$0-4],$$[$0-1])
 break;
 case 68:
-this.$= new AST_Node("SWITCH","SWITCH");this.$.addChilds($$[$0-5],$$[$0-2],$$[$0-1])
+this.$= new AST_Node("SWITCH","SWITCH",this._$.first_line,_$[$0-7].last_column);this.$.addChilds($$[$0-5],$$[$0-2],$$[$0-1])
 break;
 case 69:
 $$[$0-1].addChilds($$[$0]);this.$=$$[$0-1];
 break;
 case 70:
-this.$=new AST_Node("CASOS","CASOS");this.$.addChilds($$[$0]);
+this.$=new AST_Node("CASOS","CASOS",this._$.first_line,_$[$0].last_column);this.$.addChilds($$[$0]);
 break;
 case 71:
-this.$= new AST_Node("CASO","CASO"); this.$.addChilds($$[$0-2],$$[$0]);
+this.$= new AST_Node("CASO","CASO",this._$.first_line,_$[$0-3].last_column); this.$.addChilds($$[$0-2],$$[$0]);
 break;
 case 72:
-this.$=new AST_Node("DEFAULT","DEFAULT");this.$.addChilds($$[$0]);
+this.$=new AST_Node("DEFAULT","DEFAULT",this._$.first_line,_$[$0-2].last_column);this.$.addChilds($$[$0]);
 break;
 case 73:
-this.$=new AST_Node("BREAK","BREAK")
+this.$=new AST_Node("BREAK","BREAK",this._$.first_line,_$[$0].last_column)
 break;
 case 74:
-this.$=new AST_Node("WHILE","WHILE"); this.$.addChilds($$[$0-2],$$[$0])
+this.$=new AST_Node("WHILE","WHILE",this._$.first_line,_$[$0-4].last_column); this.$.addChilds($$[$0-2],$$[$0])
 break;
 case 75:
-this.$=new AST_Node("DO_WHILE","DO_WHILE");this.$.addChilds($$[$0-4],$$[$0-1])
+this.$=new AST_Node("DO_WHILE","DO_WHILE",this._$.first_line,_$[$0-5].last_column);this.$.addChilds($$[$0-4],$$[$0-1])
 break;
 case 76:
-this.$= new AST_Node("CONTINUE","CONTINUE")
+this.$= new AST_Node("CONTINUE","CONTINUE",this._$.first_line,_$[$0].last_column)
 break;
 case 77:
-this.$= new AST_Node("RETURN","RETURN");this.$.addChilds($$[$0])
+this.$= new AST_Node("RETURN","RETURN",this._$.first_line,_$[$0-1].last_column);this.$.addChilds($$[$0])
 break;
 case 78:
-this.$= new AST_Node("RETURN","RETURN")
+this.$= new AST_Node("RETURN","RETURN",this._$.first_line,_$[$0].last_column)
 break;
 case 79:
-this.$=new AST_Node("FUNCION","FUNCION");this.$.addChilds($$[$0-5],new AST_Node("id",$$[$0-4]),$$[$0-2],$$[$0]);
+this.$=new AST_Node("FUNCION","FUNCION",this._$.first_line,_$[$0-5].last_column);this.$.addChilds($$[$0-5],new AST_Node("id",$$[$0-4],this._$.first_line,_$[$0-4].last_column),$$[$0-2],$$[$0]);
 break;
 case 80:
-this.$=new AST_Node("FUNCION","FUNCION");this.$.addChilds(new AST_Node("TIPO",$$[$0-5]),new AST_Node("id",$$[$0-4]),$$[$0-2],$$[$0]);
+this.$=new AST_Node("FUNCION","FUNCION",this._$.first_line,_$[$0-5].last_column);this.$.addChilds(new AST_Node("TIPO",$$[$0-5],this._$.first_line,_$[$0-5].last_column),new AST_Node("id",$$[$0-4],this._$.first_line,_$[$0-4].last_column),$$[$0-2],$$[$0]);
 break;
 case 81: case 86: case 165:
 $$[$0-2].addChilds($$[$0]);this.$=$$[$0-2];
 break;
 case 82:
-this.$=new AST_Node("PARAMETROS","PARAMETROS");this.$.addChilds($$[$0]);
+this.$=new AST_Node("PARAMETROS","PARAMETROS",this._$.first_line,_$[$0].last_column);this.$.addChilds($$[$0]);
 break;
 case 83:
-this.$=new AST_Node("PARAMETRO","PARAMETRO");this.$.addChilds($$[$0-1],new AST_Node("id",$$[$0]))
+this.$=new AST_Node("PARAMETRO","PARAMETRO",this._$.first_line,_$[$0-1].last_column);this.$.addChilds($$[$0-1],new AST_Node("id",$$[$0],this._$.first_line,_$[$0].last_column))
 break;
 case 84:
-this.$=new AST_Node("VACIO","VACIO");
+this.$=new AST_Node("VACIO","VACIO",this._$.first_line,_$[$0].last_column);
 break;
 case 85:
-this.$= new AST_Node("LLAMADA","LLAMADA");
-                                            this.$.addChilds(new AST_Node("id",$$[$0-3]),$$[$0-1]);
+this.$= new AST_Node("LLAMADA","LLAMADA",this._$.first_line,_$[$0-3].last_column      );
+                                            this.$.addChilds(new AST_Node("id",$$[$0-3],this._$.first_line,_$[$0-3].last_column),$$[$0-1]);
 break;
 case 87:
-this.$= new AST_Node("PARAMETROS","PARAMETROS");this.$.addChilds($$[$0])
+this.$= new AST_Node("PARAMETROS","PARAMETROS",this._$.first_line,_$[$0].last_column);this.$.addChilds($$[$0])
 break;
 case 88:
-this.$=new AST_Node("VALOR","VALOR");this.$.addChilds(new AST_Node("id",$$[$0]));
+this.$=new AST_Node("VALOR","VALOR",this._$.first_line,_$[$0-1].last_column);this.$.addChilds(new AST_Node("id",$$[$0],this._$.first_line,_$[$0].last_column));
 break;
 case 90:
-this.$= new AST_Node("ASIGNACION","ASIGNACION");
-                                   this.$.addChilds(new AST_Node("id",$$[$0-2]),$$[$0-1]);
+this.$= new AST_Node("ASIGNACION","ASIGNACION",this._$.first_line,_$[$0-2].last_column);
+                                   this.$.addChilds(new AST_Node("id",$$[$0-2],this._$.first_line,_$[$0-2].last_column),$$[$0-1]);
 break;
 case 91:
-this.$= new AST_Node("VACIO","VACIO")
+this.$= new AST_Node("VACIO","VACIO",this._$.first_line,_$[$0].last_column)
 break;
 case 92:
-this.$= new AST_Node("PRINT","PRINT"); this.$.addChilds($$[$0-2]);
+this.$= new AST_Node("PRINT","PRINT",this._$.first_line,_$[$0-4].last_column); this.$.addChilds($$[$0-2]);
 break;
 case 93:
-this.$= new AST_Node("PRINT","PRINT"); this.$.addChilds($$[$0-1]);
+this.$= new AST_Node("PRINT","PRINT",this._$.first_line,_$[$0-3].last_column); this.$.addChilds($$[$0-1]);
 break;
 case 94:
-this.$= new AST_Node("THROW","THROW");
+this.$= new AST_Node("THROW","THROW",this._$.first_line,_$[$0-3].last_column);
                                         this.$.addChilds($$[$0-1])
 break;
 case 95:
-this.$=new AST_Node("TRY_CATCH","TRY_CATCH");
-            this.$.addChilds($$[$0-6],new AST_Node("id",$$[$0-3]),new AST_Node("id",$$[$0-2]),$$[$0])
+this.$=new AST_Node("TRY_CATCH","TRY_CATCH",this._$.first_line,_$[$0-7].last_column);
+            this.$.addChilds($$[$0-6],new AST_Node("id",$$[$0-3],this._$.first_line,_$[$0-3].last_column),new AST_Node("id",$$[$0-2],this._$.first_line,_$[$0-2].last_column),$$[$0])
 break;
 case 96:
-this.$=new AST_Node("ACCESOS","ACCESOS");
-                                                 this.$.addChilds(new AST_Node("id",$$[$0-2]),$$[$0])
+this.$=new AST_Node("ACCESOS","ACCESOS",this._$.first_line,_$[$0-2].last_column);
+                                                 this.$.addChilds(new AST_Node("id",$$[$0-2],this._$.first_line,_$[$0-2].last_column),$$[$0])
 break;
 case 97: case 98:
-this.$=new AST_Node("ACCESOS","ACCESOS");
+this.$=new AST_Node("ACCESOS","ACCESOS",this._$.first_line,_$[$0-2].last_column);
                                                  this.$.addChilds($$[$0-2],$$[$0])
 break;
 case 99: case 114:
 $$[$0-2].addChilds($$[$0]);this.$=$$[$0-2]
 break;
 case 100:
-this.$=new AST_Node("ACCESOS","ACCESOS");this.$.addChilds($$[$0])
+this.$=new AST_Node("ACCESOS","ACCESOS",this._$.first_line,_$[$0].last_column);this.$.addChilds($$[$0])
 break;
 case 101:
-this.$=new AST_Node("id",$$[$0])
+this.$=new AST_Node("id",$$[$0],this._$.first_line,_$[$0].last_column)
 break;
 case 104:
-this.$=new AST_Node("FOR","FOR");
+this.$=new AST_Node("FOR","FOR",this._$.first_line,_$[$0-8].last_column);
                                                                               this.$.addChilds($$[$0-6],$$[$0-4],$$[$0-2],$$[$0])
 break;
 case 105: case 106:
-this.$=new AST_Node("INICIO","INICIO");this.$.addChilds($$[$0])
+this.$=new AST_Node("INICIO","INICIO",this._$.first_line,_$[$0].last_column);this.$.addChilds($$[$0])
 break;
 case 107:
-this.$=new AST_Node("INICIO","INICIO");
+this.$=new AST_Node("INICIO","INICIO",this._$.first_line,_$[$0].last_column);
 break;
 case 108:
-this.$=new AST_Node("CONDICION","CONDICION");this.$.addChilds($$[$0]);
+this.$=new AST_Node("CONDICION","CONDICION",this._$.first_line,_$[$0].last_column);this.$.addChilds($$[$0]);
 break;
 case 109:
-this.$=new AST_Node("CONDICION","CONDICION");
+this.$=new AST_Node("CONDICION","CONDICION",this._$.first_line,_$[$0].last_column);
 break;
 case 110: case 111:
-this.$=new AST_Node("FINAL","FINAL");this.$.addChilds($$[$0])
+this.$=new AST_Node("FINAL","FINAL",this._$.first_line,_$[$0].last_column);this.$.addChilds($$[$0])
 break;
 case 112:
-this.$=new AST_Node("FINAL","FINAL");
+this.$=new AST_Node("FINAL","FINAL",this._$.first_line,_$[$0].last_column);
 break;
 case 113:
-this.$=new AST_Node("ESTRUCTURA","ESTRUCTURA"); this.$.addChilds(new AST_Node("id",$$[$0-4]),$$[$0-1]);
+this.$=new AST_Node("ESTRUCTURA","ESTRUCTURA,this._$.first_line,_$[$0-5].last_column"); this.$.addChilds(new AST_Node("id",$$[$0-4],this._$.first_line,_$[$0-4].last_column),$$[$0-1]);
 break;
 case 115:
-this.$=new AST_Node("ATRIBUTOS","ATRIBUTS");this.$.addChilds($$[$0])
+this.$=new AST_Node("ATRIBUTOS","ATRIBUTOS",this._$.first_line,_$[$0].last_column);this.$.addChilds($$[$0])
 break;
 case 116:
-this.$=new AST_Node("ATRIBUTO","ATRIBUTO");this.$.addChilds($$[$0-1],new AST_Node("id",$$[$0]));
+this.$=new AST_Node("ATRIBUTO","ATRIBUTO",this._$.first_line,_$[$0-1].last_column);this.$.addChilds($$[$0-1],new AST_Node("id",$$[$0],this._$.first_line,_$[$0].last_column));
 break;
 case 117: case 118:
-this.$=new AST_Node("ATRIBUTO","ATRIBUTO");this.$.addChilds($$[$0])
+this.$=new AST_Node("ATRIBUTO","ATRIBUTO",this._$.first_line,_$[$0].last_column);this.$.addChilds($$[$0])
 break;
-case 119: case 120: case 121: case 122: case 123: case 124: case 126: case 127: case 128: case 129: case 130: case 131: case 132: case 133: case 134: case 136:
-this.$= new AST_Node("EXP","EXP");this.$.addChilds($$[$0-2],new AST_Node("op",$$[$0-1]),$$[$0]);
+case 119: case 120: case 121: case 122: case 123: case 124: case 126: case 127: case 128: case 129: case 130: case 131: case 132: case 134: case 136:
+this.$= new AST_Node("EXP","EXP",this._$.first_line,_$[$0-1].last_column);this.$.addChilds($$[$0-2],new AST_Node("op",$$[$0-1],this._$.first_line,_$[$0-1].last_column),$$[$0]);
 break;
-case 125: case 135:
-this.$= new AST_Node("EXP","EXP");this.$.addChilds(new AST_Node("op",$$[$0-1]),$$[$0]);
+case 125:
+this.$= new AST_Node("EXP","EXP",this._$.first_line,_$[$0-1].last_column);this.$.addChilds(new AST_Node("op",$$[$0-1],this._$.first_line,_$[$0-1].last_column),$$[$0]);
+break;
+case 133:
+this.$= new AST_Node("EXP","EXP",this._$.first_line,_$[$0-1].last_column);this.$.addChilds($$[$0-2],new AST_Node("op",$$[$0-1]),this._$.first_line,_$[$0-1].last_column,$$[$0]);
+break;
+case 135:
+this.$= new AST_Node("EXP","EXP",this._$.first_line,_$[$0].last_column);this.$.addChilds(new AST_Node("op",$$[$0-1],this._$.first_line,_$[$0-1].last_column),$$[$0]);
 break;
 case 137: case 138:
-this.$= new AST_Node("EXP","EXP");this.$.addChilds(new AST_Node("id",$$[$0-1]),new AST_Node("op",$$[$0]));
+this.$= new AST_Node("EXP","EXP",this._$.first_line,_$[$0].last_column);this.$.addChilds(new AST_Node("id",$$[$0-1]),new AST_Node("op",$$[$0],this._$.first_line,_$[$0].last_column));
 break;
 case 140: case 141: case 142:
-this.$= new AST_Node("EXP","EXP");var aux=new AST_Node("CASTEO","CASTEO"); aux.addChilds(new AST_Node("TIPO",$$[$0-2]),$$[$0]); this.$.addChilds(aux);
+this.$= new AST_Node("EXP","EXP",this._$.first_line,_$[$0].last_column);var aux=new AST_Node("CASTEO","CASTEO",this._$.first_line,_$[$0-3].last_column); aux.addChilds(new AST_Node("TIPO",$$[$0-2],this._$.first_line,_$[$0-3].last_column),$$[$0]); this.$.addChilds(aux);
 break;
 case 143: case 144:
-this.$= new AST_Node("EXP","EXP");this.$.addChilds($$[$0])
+this.$= new AST_Node("EXP","EXP",this._$.first_line,_$[$0].last_column);this.$.addChilds($$[$0])
 break;
-case 145: case 146: case 147:
-this.$=new AST_Node("EXP","EXP");this.$.addChilds($$[$0])
+case 145:
+this.$=new AST_Node("EXP","EXP",this._$.first_line,_$[$0-1].last_column);this.$.addChilds($$[$0])
+break;
+case 146: case 147:
+this.$=new AST_Node("EXP","EXP",this._$.first_line,_$[$0].last_column);this.$.addChilds($$[$0])
 break;
 case 148:
-this.$= new AST_Node("EXP","EXP");this.$.addChilds(new AST_Node("string",$$[$0]));
+this.$= new AST_Node("EXP","EXP",this._$.first_line,_$[$0].last_column);this.$.addChilds(new AST_Node("string",$$[$0],this._$.first_line,_$[$0].last_column));
 break;
 case 149:
-this.$= new AST_Node("EXP","EXP");this.$.addChilds(new AST_Node("integer",$$[$0]));
+this.$= new AST_Node("EXP","EXP",this._$.first_line,_$[$0].last_column);this.$.addChilds(new AST_Node("integer",$$[$0],this._$.first_line,_$[$0].last_column));
 break;
 case 150:
-this.$= new AST_Node("EXP","EXP");this.$.addChilds(new AST_Node("double",$$[$0]));
+this.$= new AST_Node("EXP","EXP",this._$.first_line,_$[$0].last_column);this.$.addChilds(new AST_Node("double",$$[$0],this._$.first_line,_$[$0].last_column));
 break;
 case 151:
-this.$= new AST_Node("EXP","EXP");this.$.addChilds(new AST_Node("char",$$[$0]));
+this.$= new AST_Node("EXP","EXP",this._$.first_line,_$[$0].last_column);this.$.addChilds(new AST_Node("char",$$[$0],this._$.first_line,_$[$0].last_column));
 break;
 case 152:
-this.$= new AST_Node("EXP","EXP");this.$.addChilds(new AST_Node("true",$$[$0]));
+this.$= new AST_Node("EXP","EXP",this._$.first_line,_$[$0].last_column);this.$.addChilds(new AST_Node("true",$$[$0],this._$.first_line,_$[$0].last_column));
 break;
 case 153:
-this.$= new AST_Node("EXP","EXP");this.$.addChilds(new AST_Node("false",$$[$0]));
+this.$= new AST_Node("EXP","EXP",this._$.first_line,_$[$0].last_column);this.$.addChilds(new AST_Node("false",$$[$0],this._$.first_line,_$[$0].last_column));
 break;
 case 154:
-this.$= new AST_Node("EXP","EXP");this.$.addChilds(new AST_Node("null",$$[$0]));
+this.$= new AST_Node("EXP","EXP",this._$.first_line,_$[$0].last_column);this.$.addChilds(new AST_Node("null",$$[$0],this._$.first_line,_$[$0].last_column));
 break;
 case 155:
-this.$= new AST_Node("EXP","EXP");this.$.addChilds(new AST_Node("id",$$[$0]));
+this.$= new AST_Node("EXP","EXP",this._$.first_line,_$[$0].last_column);this.$.addChilds(new AST_Node("id",$$[$0],this._$.first_line,_$[$0].last_column));
 break;
 case 156:
-this.$= new AST_Node("EXP","EXP");this.$.addChilds($$[$0]);
+this.$= new AST_Node("EXP","EXP",this._$.first_line,_$[$0].last_column);this.$.addChilds($$[$0]);
 break;
 case 157:
-this.$= new AST_Node("ACCESO_ARREGLO","ACCESO_ARREGLO");
-                                            this.$.addChilds(new AST_Node("id",$$[$0-3]),$$[$0-1])
+this.$= new AST_Node("ACCESO_ARREGLO","ACCESO_ARREGLO",this._$.first_line,_$[$0-3].last_column);
+                                            this.$.addChilds(new AST_Node("id",$$[$0-3],this._$.first_line,_$[$0-3].last_column),$$[$0-1])
 break;
 case 158:
-this.$=new AST_Node("ACCESO_LLAMADA","ACCESO_LLAMADA");
+this.$=new AST_Node("ACCESO_LLAMADA","ACCESO_LLAMADA,this._$.first_line,_$[$0-3].last_column");
                                              this.$.addChilds($$[$0-3],$$[$0-1]);
 break;
 case 159:
-this.$=new AST_Node("INICIALIZACION","INICIALIZACION");
-                                                        this.$.addChilds(new AST_Node("TIPO",$$[$0-3]),$$[$0-1])
+this.$=new AST_Node("INICIALIZACION","INICIALIZACION",this._$.first_line,_$[$0-3].last_column);
+                                                        this.$.addChilds(new AST_Node("TIPO",$$[$0-3],this._$.first_line,_$[$0-3].last_column),$$[$0-1])
 break;
 case 160:
-this.$=new AST_Node("INICIALIZACION","INICIALIZACION");
-                                                         this.$.addChilds(new AST_Node("TIPO","integer"),$$[$0-1])
+this.$=new AST_Node("INICIALIZACION","INICIALIZACION",this._$.first_line,_$[$0-3].last_column);
+                                                         this.$.addChilds(new AST_Node("TIPO","integer",this._$.first_line,_$[$0-3].last_column),$$[$0-1])
 break;
 case 161:
-this.$=new AST_Node("INICIALIZACION","INICIALIZACION");
-                                                        this.$.addChilds(new AST_Node("TIPO","char"),$$[$0-1])
+this.$=new AST_Node("INICIALIZACION","INICIALIZACION",this._$.first_line,_$[$0-3].last_column);
+                                                        this.$.addChilds(new AST_Node("TIPO","char",this._$.first_line,_$[$0-3].last_column),$$[$0-1])
 break;
 case 162:
-this.$=new AST_Node("INICIALIZACION","INICIALIZACION");
-                                                        this.$.addChilds(new AST_Node("TIPO","double"),$$[$0-1])
+this.$=new AST_Node("INICIALIZACION","INICIALIZACION",this._$.first_line,_$[$0-3].last_column);
+                                                        this.$.addChilds(new AST_Node("TIPO","double",this._$.first_line,_$[$0-3].last_column),$$[$0-1])
 break;
 case 163:
-this.$=new AST_Node("INICIALIZACION","INICIALIZACION");
-                                                        this.$.addChilds(new AST_Node("TIPO","boolean"),$$[$0-1])
+this.$=new AST_Node("INICIALIZACION","INICIALIZACION",this._$.first_line,_$[$0-3].last_column);
+                                                        this.$.addChilds(new AST_Node("TIPO","boolean",this._$.first_line,_$[$0-3].last_column),$$[$0-1])
 break;
 case 164:
-this.$= new AST_Node("LISTA","LISTA"); this.$.addChilds($$[$0-1])
+this.$= new AST_Node("LISTA","LISTA",this._$.first_line,_$[$0-2].last_column); this.$.addChilds($$[$0-1])
 break;
 case 166:
-this.$=new AST_Node("ELEMENTOS","ELEMENTOS");this.$.addChilds($$[$0]);
+this.$=new AST_Node("ELEMENTOS","ELEMENTOS",this._$.first_line,_$[$0].last_column);this.$.addChilds($$[$0]);
 break;
 case 167:
-this.$= new AST_Node("INSTANCIA","INSTANCIA");this.$.addChilds($$[$0])
+this.$= new AST_Node("INSTANCIA","INSTANCIA",this._$.first_line,_$[$0-1].last_column);this.$.addChilds($$[$0])
 break;
 }
 },
@@ -659,10 +668,12 @@ _handle_error:
 
 
 
-function AST_Node(tag, value){
+function AST_Node(tag, value,fila,columna){
 
     this.tag = tag;
     this.value = value;
+    this.fila=fila;
+    this.columna=columna;
 
     this.childs = [];
 
