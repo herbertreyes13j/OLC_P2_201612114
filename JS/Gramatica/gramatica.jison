@@ -78,8 +78,9 @@
 "$"                 return 'Tok_dolar'
 
 \"[^\"]*\"              { yytext = yytext.substr(1,yyleng-2); return 'Tok_string'; }
-[0-9]+("."[0-9]+)?\b    return 'Tok_doble';
 [0-9]+\b                return 'Tok_entero';
+[0-9]+("."[0-9]+)?\b    return 'Tok_doble';
+
 
 
 ([a-zA-Z])[a-zA-Z0-9"-"]*".j" return 'Tok_Nombre';

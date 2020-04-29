@@ -67,8 +67,8 @@ var Generador = (function(){
             return "stack[" + pos + "] = " + asignacion + ";\n";
         }
 
-        getstack(pos, asignacion) {
-            return asignacion + " = Stack[" + pos + "];\n";
+        getfromStack(temporal, posicion) {
+            return temporal + " = Stack[" + posicion + "];\n";
         }
 
         changeheap(pos, valor) {
@@ -85,6 +85,10 @@ var Generador = (function(){
 
         getpunteroh(valor) {
             return valor + " = H;\n";
+        }
+
+        getfromP(temporal,apuntador){
+            return temporal +"= P"+apuntador+";\n";
         }
 
         make3d(op,ins1,ins2,asignacion) {
@@ -131,14 +135,7 @@ var Generador = (function(){
         this.etiquetas="";
         this.codeprincipal="";
         }
-
-        
-
- 
     }
-
-
-
     function crearInstancia(){
         return new Generador3D();
     }

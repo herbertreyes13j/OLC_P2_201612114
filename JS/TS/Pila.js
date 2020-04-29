@@ -1,8 +1,9 @@
 class Pila{
-    constructor(){
+    constructor(ambito){
         this.size=2;
         this.inicio=null;
         this.fin=null;
+        this.ambito=ambito;
     }
 
     reiniciar(){
