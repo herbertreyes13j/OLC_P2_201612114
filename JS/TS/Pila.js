@@ -14,7 +14,7 @@ class Pila{
 
     push(nueva)
     {
-        if (existe(nueva.nombre)) return false;
+        if (this.existe(nueva.nombre)) return false;
 
         //Console.WriteLine("ingresando a la pila variable: '" + nueva.nombre + "' con un valor de: " + nueva.valor.valor);
         if (this.inicio == null)
@@ -30,7 +30,7 @@ class Pila{
             this.fin = nueva;
            
         }
-        size++;
+        this.size++;
 
         return true;
     }
@@ -47,15 +47,18 @@ class Pila{
 
     vaciarPila()
     {
-        while (!this.fin.nombre.equals("$$") && !this.fin.nombre().equals("$")) { var aux = pop(); }//vaciar hasta $ o $$
+        while (!this.fin.nombre=="$$" && !this.fin.nombre()=="$") { var aux = pop(); }//vaciar hasta $ o $$
         pop();
     }
     existe(nombre){
-        if(nombre.equals("$$")||nombre.equals("$")) return false;
+        if(nombre=="$$"||nombre=="$") return false;
         var actual = this.fin;
 
         while(actual!=null){
-            if(actual.nombre.equals(nombre)){
+            if(actual.nombre.toUpperCase()==nombre.toUpperCase()){
+                console.log(actual.nombre.toUpperCase());
+                console.log(nombre.toUpperCase());
+                console.log('aca esta malo')
                 return true;
             }
             actual = actual.anterior;
@@ -73,11 +76,11 @@ class Pila{
         
         for (var i = 0; i < this.size-2; i++)
         {
-            if (actual.nombre.equals(nombre))
+            if (actual.nombre.toUpperCase()==nombre.toUpperCase())
             {
                 return actual;   
             }
-            else if (actual.nombre.equals("$$")) return null;
+            else if (actual.nombre=="$$") return null;
             actual = actual.anterior;
         }
         return null;

@@ -5,11 +5,14 @@
     this.tipo = "";
     this.metodo = null;
     this.parametros=[];
+    this.temporales=[];
     this.etqReturn = "";
     this.etiqueta = "";
     this.posInicial = 0;
     this.pila= new Pila();
     this.hijos=null;
+    this.traducido=false;
+    this.nombretraducido="";
     }
 
 

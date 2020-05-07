@@ -69,8 +69,8 @@
 ">"                 return 'Tok_mayor'
 "<"                 return 'Tok_menor'
 "!="                return 'Tok_diferente'
-"&"                 return 'Tok_and'
-"|"                 return 'Tok_or'
+"&&"                 return 'Tok_and'
+"||"                 return 'Tok_or'
 "^"                 return 'Tok_xor'
 
 "?"                 return 'Tok_pre'
@@ -78,8 +78,7 @@
 "$"                 return 'Tok_dolar'
 
 \"[^\"]*\"              { yytext = yytext.substr(1,yyleng-2); return 'Tok_string'; }
-[0-9]+\b                return 'Tok_entero';
-[0-9]+("."[0-9]+)?\b    return 'Tok_doble';
+[0-9]+("."[0-9]+)?\b    return 'Tok_numero';
 
 
 
@@ -148,7 +147,7 @@ function AST_Node(tag, value,fila,columna){
 
 %% /* Definición de la gramática */
 
-S: SENTENCIAS EOF {return $1};
+S: SENTENCIAS EOF {$$=new AST_Node("RAIZ","RAIZ",this._$.first_line,@1.last_column);$$.addChilds($1); return $$};
 
 SENTENCIAS: SENTENCIAS SENTENCIA{$1.addChilds($2); $$=$1;}
         
@@ -247,9 +246,11 @@ SWITCH: Tok_switch Tok_par1 EXP Tok_par2 Tok_llav1 CASOS Tok_llav2 {$$= new AST_
 CASOS: CASOS CASO {$1.addChilds($2);$$=$1;}
       |CASO{$$=new AST_Node("CASOS","CASOS",this._$.first_line,@1.last_column);$$.addChilds($1);};
 
-CASO: Tok_case EXP Tok_bipunto SENTENCIAS   {$$= new AST_Node("CASO","CASO",this._$.first_line,@1.last_column); $$.addChilds($2,$4);};
+CASO: Tok_case EXP Tok_bipunto SENTENCIAS   {$$= new AST_Node("CASO","CASO",this._$.first_line,@1.last_column); $$.addChilds($2,$4);}
+     |Tok_case EXP Tok_bipunto {$$= new AST_Node("CASO","CASO",this._$.first_line,@1.last_column); $$.addChilds($2,new AST_Node("VACIO","VACIO",this._$.first_line,@1.last_column));};
 
-DEFAULT: Tok_default Tok_bipunto SENTENCIAS {$$=new AST_Node("DEFAULT","DEFAULT",this._$.first_line,@1.last_column);$$.addChilds($3);};
+DEFAULT: Tok_default Tok_bipunto SENTENCIAS {$$=new AST_Node("DEFAULT","DEFAULT",this._$.first_line,@1.last_column);$$.addChilds($3);}
+        |Tok_default Tok_bipunto {$$=new AST_Node("DEFAULT","DEFAULT",this._$.first_line,@1.last_column);$$.addChilds(new AST_Node("VACIO","VACIO",this._$.first_line,@1.last_column))};
 
 BREAK: Tok_break {$$=new AST_Node("BREAK","BREAK",this._$.first_line,@1.last_column)};
 
@@ -350,7 +351,7 @@ EXP: EXP Tok_mas EXP                    {$$= new AST_Node("EXP","EXP",this._$.fi
     |EXP Tok_menor EXP                  {$$= new AST_Node("EXP","EXP",this._$.first_line,@2.last_column);$$.addChilds($1,new AST_Node("op",$2,this._$.first_line,@2.last_column),$3);}
     |EXP Tok_mayori EXP                 {$$= new AST_Node("EXP","EXP",this._$.first_line,@2.last_column);$$.addChilds($1,new AST_Node("op",$2,this._$.first_line,@2.last_column),$3);}
     |EXP Tok_menori EXP                 {$$= new AST_Node("EXP","EXP",this._$.first_line,@2.last_column);$$.addChilds($1,new AST_Node("op",$2,this._$.first_line,@2.last_column),$3);}
-    |EXP Tok_and EXP                    {$$= new AST_Node("EXP","EXP",this._$.first_line,@2.last_column);$$.addChilds($1,new AST_Node("op",$2),this._$.first_line,@2.last_column,$3);}
+    |EXP Tok_and EXP                    {$$= new AST_Node("EXP","EXP",this._$.first_line,@2.last_column);$$.addChilds($1,new AST_Node("op",$2,this._$.first_line,@2.last_column),$3);}
     |EXP Tok_or EXP                     {$$= new AST_Node("EXP","EXP",this._$.first_line,@2.last_column);$$.addChilds($1,new AST_Node("op",$2,this._$.first_line,@2.last_column),$3);}
     |Tok_not EXP                        {$$= new AST_Node("EXP","EXP",this._$.first_line,@2.last_column);$$.addChilds(new AST_Node("op",$1,this._$.first_line,@1.last_column),$2);}
     |EXP Tok_xor EXP                    {$$= new AST_Node("EXP","EXP",this._$.first_line,@2.last_column);$$.addChilds($1,new AST_Node("op",$2,this._$.first_line,@2.last_column),$3);}
@@ -366,8 +367,7 @@ EXP: EXP Tok_mas EXP                    {$$= new AST_Node("EXP","EXP",this._$.fi
     |LISTA                              {$$=new AST_Node("EXP","EXP",this._$.first_line,@1.last_column);$$.addChilds($1)}
     |ACCESO_ARREGLO %prec PRE_ACCESO    {$$=new AST_Node("EXP","EXP",this._$.first_line,@1.last_column);$$.addChilds($1)}
     |Tok_string                         {$$= new AST_Node("EXP","EXP",this._$.first_line,@1.last_column);$$.addChilds(new AST_Node("string",$1,this._$.first_line,@1.last_column));}
-    |Tok_entero                         {$$= new AST_Node("EXP","EXP",this._$.first_line,@1.last_column);$$.addChilds(new AST_Node("integer",$1,this._$.first_line,@1.last_column));}
-    |Tok_doble                          {$$= new AST_Node("EXP","EXP",this._$.first_line,@1.last_column);$$.addChilds(new AST_Node("double",$1,this._$.first_line,@1.last_column));}
+    |Tok_numero                         {$$= new AST_Node("EXP","EXP",this._$.first_line,@1.last_column);$$.addChilds(new AST_Node("integer",$1,this._$.first_line,@1.last_column));}
     |Tok_caracter                       {$$= new AST_Node("EXP","EXP",this._$.first_line,@1.last_column);$$.addChilds(new AST_Node("char",$1,this._$.first_line,@1.last_column));}
     |Tok_true                           {$$= new AST_Node("EXP","EXP",this._$.first_line,@1.last_column);$$.addChilds(new AST_Node("true",$1,this._$.first_line,@1.last_column));}
     |Tok_false                          {$$= new AST_Node("EXP","EXP",this._$.first_line,@1.last_column);$$.addChilds(new AST_Node("false",$1,this._$.first_line,@1.last_column));}

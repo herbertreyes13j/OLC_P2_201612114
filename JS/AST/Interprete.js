@@ -1,25 +1,38 @@
+
 class Interprete{
   constructor(){
     this.global = new Pila("global");
     this.mglobal = [];
+    Generador.getInstance().reiniciar();
   }
 
   analizar(raiz){
 
     this.primerapasada(raiz);
-    this.traductor3D(raiz,this.global);
+    this.traductor3D(raiz,this.global,null);
 
   }
   
   primerapasada(raiz){
     var nodo;
+
     if(raiz===undefined || raiz===null)return;
-    for(var i =0; i<raiz.childs.length;i++){
-      if(raiz.childs[i] === null || raiz.childs[i] === undefined) continue;
-      switch(raiz.childs[i].tag){
+
+      
+      switch(raiz.tag){
+        case "RAIZ":
+        this.primerapasada(raiz.childs[0]);
+        break;
+
+        case "SENTENCIAS":
+          for(var i =0; i<raiz.childs.length;i++){
+            if(raiz.childs[i] === null || raiz.childs[i] === undefined) continue;
+            this.primerapasada(raiz.childs[i]);
+          }
+        break;
         case "FUNCION":
             var metodo = new Metodo();
-            nodo=raiz.childs[i];
+            nodo=raiz;
             metodo.nombre=nodo.childs[1].value;
             if(nodo.childs[0].tag=="TIPO"){
               metodo.tipo=nodo.childs[0].value;
@@ -46,7 +59,7 @@ class Interprete{
             this.verificarmetodo(metodo,nodo.fila,nodo.columna);
         break;
       }
-    }
+    
   }
 
   traductor3D(raiz,pila,metodo){
@@ -54,39 +67,358 @@ class Interprete{
     var op;
     var valor;
     var s;
+    var codigo="";
     if(raiz===undefined || raiz===null)return;
-    for(var i =0; i<raiz.childs.length;i++){
-      if(raiz.childs[i] === null || raiz.childs[i] === undefined) continue;
-      switch(raiz.childs[i].tag){
+
+
+      switch(raiz.tag){
+        case "RAIZ":
+       
+        var aux=this.traductor3D(raiz.childs[0],pila,metodo); 
+        var etq=Generador.getInstance().getEtq();
+
+        Generador.getInstance().addprincipal(Generador.getInstance().jmpincondicional(etq));
+        aux+=Generador.getInstance().makecall("principal");
+        aux+=Generador.getInstance().getprincipal();
+        aux+=Generador.getInstance().getAux3d();
+        aux+=Generador.getInstance().getNativos();
+        codigo=Generador.getInstance().getencabezado();
+        codigo+=aux;
+        codigo+=etq+':\n';
+        console.log(codigo);
+        break;
+        case "SENTENCIAS":
+          
+          for(var i =0; i<raiz.childs.length;i++){
+            if(raiz.childs[i] === null || raiz.childs[i] === undefined) continue;
+            
+            codigo+=this.traductor3D(raiz.childs[i],pila,metodo);
+          }
+        break;
+        case "BLOQUE":
+          
+          for(var i =0; i<raiz.childs.length;i++){
+            if(raiz.childs[i] === null || raiz.childs[i] === undefined) continue;
+            
+            codigo+=this.traductor3D(raiz.childs[i],pila,metodo);
+          }
+        break;
         case "DECLARACION1":
-           nodo=raiz.childs[i];
+           nodo=raiz;
            var tipo;
            if(nodo.childs[0].tag=="TIPO"){
             tipo=nodo.childs[0].value;
            }else{
 
            }
-        op = new Operador(pila,this.global);
-        var valor = op.ejecutar(nodo.childs[2]);
+        op = new Operador(this);
+        var valor = op.ejecutar(nodo.childs[2],pila,metodo);
         console.log(valor);
         for(var j=0; j < nodo.childs[1].childs.length;j++){
+          var ref;
+          if(this.esprimtivo(valor.tipo)){
+              ref=false;
+          }else{
+              ref=true;
+          }
           s = new Simbolo(nodo.childs[1].childs[j].value,valor.tipo,pila.ambito,
-               pila.size,false,pila.ambito);
+               pila.size,ref,pila.ambito);
           if(!pila.push(s)){
-            L_Error.getInstance().insertar(new Error("Semantico","Variable \""+s.nombre+"\" ya esta definida",
+            L_Error.getInstance().insertar(new N_Error("Semantico","Variable \""+s.nombre+"\" ya esta definida",
                                            nodo.childs[1].childs[j].fila,nodo.childs[1].childs[j].columna));
-          };
+          }else{
+            codigo+=Generador.getInstance().makecomentario("Asignacion de Variable \""+s.nombre+"\"");
+            codigo+=Generador.getInstance().makecomentario("Codigo 3D Previo");
+            codigo+=valor.codigo;
+            var etq=Generador.getInstance().getTemp();
+            codigo+=Generador.getInstance().makecomentario("Asignando apuntador, y asignar valor del temporal a Stack");
+            codigo+=Generador.getInstance().getfromP(etq,s.apuntador);
+            codigo+=Generador.getInstance().changestack(etq,valor.tmp);
+          }
         }
-        break;
+        return codigo;
+        
+        case "ASIGNACION":
+          op = new Operador(this);
+          var id=raiz.childs[0].value;
+          valor=op.ejecutar(raiz.childs[1],pila,metodo);
+          var simbolo=null;
+          simbolo=pila.obtener(id);
+          if(simbolo==null){
+            simbolo=this.global.obtener(id);
+          }
+          if(simbolo!=null){
+            if(simbolo.referencia){
+
+            }else{
+              
+            }
+            //Recordar verificar tipos y la gran
+            codigo+=Generador.getInstance().makecomentario("Haciendo Asignacion de: "+id);
+            codigo+=valor.codigo;
+            var etq=Generador.getInstance().getTemp();
+            codigo+=Generador.getInstance().getfromP(etq,simbolo.apuntador);
+            codigo+=Generador.getInstance().changestack(etq,valor.tmp);
+          }else{
+            //Error
+          }
+          return codigo;
+
+        case "IF":
+            op = new Operador(this);
+            var valor=op.ejecutar(raiz.childs[0],pila,metodo);
+
+            if(valor.tipo=="boolean"){
+              var salida=Generador.getInstance().getEtq();
+              codigo+=Generador.getInstance().makecomentario("Codigo de IF");
+              codigo+=valor.codigo;
+              codigo+=valor.etqV+":\n";
+              codigo+=this.traductor3D(raiz.childs[1],pila,metodo);
+              codigo+=Generador.getInstance().makecomentario("Ir a etiqueta de Salida");
+              codigo+=Generador.getInstance().jmpincondicional(salida);
+              codigo+=valor.etqF+":\n"; 
+              if(raiz.childs.length==3){
+                if(raiz.childs[2].tag=="ELSE"){
+                  codigo+=Generador.getInstance().makecomentario("Codigo de ELSE");
+                  codigo+=this.traductor3D(raiz.childs[2].childs[0],pila,metodo);
+                  codigo+=Generador.getInstance().jmpincondicional(salida);
+                }else{
+                  raiz.childs[2].childs.forEach(nodo => {
+                    if(nodo.value=="ELIF"){
+                      op = new Operador(this);
+                      valor=op.ejecutar(nodo.childs[0],pila,metodo);
+                      if(valor.tipo=="boolean"){
+                        codigo+=Generador.getInstance().makecomentario("Codigo de ELIF");
+                        codigo+=valor.codigo;
+                        codigo+=valor.etqV+":\n";
+                        codigo+=this.traductor3D(nodo.childs[1],pila,metodo);
+                        codigo+=Generador.getInstance().makecomentario("Ir a etiqueta de Salida");
+                        codigo+=Generador.getInstance().jmpincondicional(salida);
+                        codigo+=valor.etqF+":\n"; 
+                      }else{
+                        L_Error.getInstance().insertar(new N_Error("Semantico","Tipo :"+valor.tipo +" no es una expresion valida para el elif",
+                        nodo.childs[0].fila,nodo.childs[0].columna));
+                      }
+                    }else{
+                      codigo+=Generador.getInstance().makecomentario("Codigo de ELSE    ");
+                      codigo+=this.traductor3D(nodo.childs[0],pila,metodo);
+                      codigo+=Generador.getInstance().jmpincondicional(salida);
+                    }
+                  });
+                }
+              
+
+              }
+              codigo+=salida+":\n";
+            }else{
+              L_Error.getInstance().insertar(new N_Error("Semantico","Tipo :"+valor.tipo +" no es una expresion valida para el if",
+              raiz.childs[0].fila,raiz.childs[0].columna));
+            }
+
+
+          return codigo;
+
+        case 'LLAMADA':
+            var resp=this.llamada(raiz,pila,metodo);
+        return resp.codigo;
+
+        case "RETURN":
+            if(raiz.childs[0]===undefined || raiz.childs[0]===null){
+              codigo+=Generador.getInstance().jmpincondicional(metodo.etiqueta);
+            }else{
+              op = new Operador(this);
+              codigo+=Generador.getInstance().makecomentario("Codigo de Return");
+              var resultado=op.ejecutar(raiz.childs[0],pila,metodo);
+              codigo+=resultado.codigo;
+              codigo+=Generador.getInstance().makecomentario("Asignando valor de Return al return de metodo");
+              var temporal=Generador.getInstance().getTemp();
+              codigo+=Generador.getInstance().getfromP(temporal,"1");
+              codigo+=Generador.getInstance().changestack(temporal,resultado.tmp);
+              codigo+=Generador.getInstance().jmpincondicional(metodo.etiqueta);
+            }
+            metodo.temporales=[];
+            return codigo;
+        case "PRINT":
+        nodo=raiz;
+        op = new Operador(this);
+
+        var valor= op.ejecutar(nodo.childs[0],pila,metodo);
+        if(valor.tipo=="error"){
+          return codigo;
+        }
+        codigo+=Generador.getInstance().makecomentario("Codigo 3D Funcion Print");
+        console.log(valor);
+        codigo+=Generador.getInstance().makecomentario("Codigo Generado de la Expresion \""+valor.comentario+"\"");
+       
+
+        if(valor.tipo=="boolean"){
+          console.log(valor);
+              var salida=Generador.getInstance().getEtq();
+              valor.tmp = Generador.getInstance().getTemp();
+              valor.tipo = "string";
+              valor.codigo+=Generador.getInstance().makecomentario("Conviertiendo booleano a String")
+              valor.codigo+=valor.etqV+":\n"
+              valor.codigo += Generador.getInstance().getpunteroh(valor.tmp);
+              var value="true";
+              for(var n=0;n<value.length;n++){
+                valor.codigo+=Generador.getInstance().changeheap("H",value.charCodeAt(n));
+                valor.codigo+=Generador.getInstance().incheap("1");   
+            }
+              valor.codigo+=Generador.getInstance().changeheap("H","-1");
+              valor.codigo+=Generador.getInstance().incheap("1");
+              valor.codigo+=Generador.getInstance().jmpincondicional(salida);
+              value="false";
+              valor.codigo+=valor.etqF+":\n";
+              valor.codigo += Generador.getInstance().getpunteroh(valor.tmp);
+              for(var n=0;n<value.length;n++){
+                valor.codigo+=Generador.getInstance().changeheap("H",value.charCodeAt(n));
+                valor.codigo+=Generador.getInstance().incheap("1");   
+              }
+              valor.codigo+=Generador.getInstance().changeheap("H","-1");
+              valor.codigo+=Generador.getInstance().incheap("1");
+              valor.codigo+=Generador.getInstance().jmpincondicional(salida);
+              valor.codigo+=salida+": \n";
+            
+        }
+        codigo+=valor.codigo;
+        var ambito=pila.size;
+        //Cambiar ambito
+
+        var temp1=Generador.getInstance().getTemp();
+        var temp2= Generador.getInstance().getTemp();
+        codigo+=Generador.getInstance().getfromP(temp1,ambito);
+        codigo+=Generador.getInstance().make3d("+",temp1,"0",temp2);
+        codigo+=Generador.getInstance().changestack(temp2,valor.tmp);
+        codigo+=Generador.getInstance().make3d("+",temp1,"1",temp2);
+        codigo+=Generador.getInstance().changestack(temp2,'1');
+        codigo+=Generador.getInstance().incP(ambito);
+ 
+          switch(valor.tipo){
+            case "integer":
+              codigo+=Generador.getInstance().makecall("print_int_");
+            break;
+  
+            case "char":
+            codigo+=Generador.getInstance().makecall("print_char_");
+            break;
+            case "double":
+              codigo+=Generador.getInstance().makecall("print_decimal_");
+            break;
+  
+            case "string":
+            codigo+=Generador.getInstance().makecall("print_string_");
+            break;
+          }
+
+        
+
+
+        codigo+=Generador.getInstance().decP(ambito);
+        return codigo;  
+      
+        case "SWITCH":
+          console.log(raiz);
+          op = new Operador(this);
+          valor=op.ejecutar(raiz.childs[0],pila,metodo);
+          var aux,etqV,etqF;
+          var escape = Generador.getInstance().getEtq();
+          PilaEscape.getInstance().push(new NodoEscape(escape,"","switch"));
+          codigo+=Generador.getInstance().makecomentario("Inicio de Switch");
+          codigo+=valor.codigo;
+          raiz.childs[1].childs.forEach(element => {
+            op= new Operador(this);
+            aux=op.ejecutar(element.childs[0],pila,metodo);
+            if(aux.tipo==valor.tipo){
+              codigo+=Generador.getInstance().makecomentario("CASE: "+aux.comentario);
+              codigo+=aux.codigo;
+              etqV=Generador.getInstance().getEtq();
+              etqF=Generador.getInstance().getEtq();
+              codigo+=Generador.getInstance().jmpcondicional(valor.tmp,"==",aux.tmp,etqV);
+              codigo+=Generador.getInstance().jmpincondicional(etqF);
+              codigo+=etqV+":\n";
+              codigo+=this.traductor3D(element.childs[1],pila,metodo);
+              codigo+=etqF+":\n";
+            }else{
+
+            }
+          });
+          if(raiz.childs.length==3){
+            codigo+=Generador.getInstance().makecomentario("Default");
+            codigo+=this.traductor3D(raiz.childs[2].childs[0],pila,metodo);
+          }
+          PilaEscape.getInstance().pop();
+          codigo+=escape+":\n";
+        return codigo;
+
+        case "BREAK":
+          var ne = PilaEscape.getInstance().obtener("all");
+          if(ne!=null){
+            codigo+=Generador.getInstance().makecomentario("Break");
+            codigo+=Generador.getInstance().jmpincondicional(ne.etqSalida);
+          }
+        return codigo;
+
+        case "CONTINUE":
+          var ne = PilaEscape.getInstance().obtener("while");
+          if(ne!=null){
+            codigo+=Generador.getInstance().makecomentario("Continue");
+            codigo+=Generador.getInstance().jmpincondicional(ne.etqEntrada);
+          }
+        return codigo;
+
+        case "WHILE":
+          op = new Operador(this);
+          valor=op.ejecutar(raiz.childs[0],pila,metodo);
+          var entrada=Generador.getInstance().getEtq();
+          var salida=Generador.getInstance().getEtq();
+          PilaEscape.getInstance().push(new NodoEscape(salida,entrada,"while"));
+          //Validar error booleano
+          codigo+=Generador.getInstance().makecomentario("WHILE");
+          codigo+=entrada+":\n";
+          codigo+=valor.codigo;
+          codigo+=valor.etqV+":\n";
+          codigo+=this.traductor3D(raiz.childs[1],pila,metodo);
+          codigo+=Generador.getInstance().jmpincondicional(entrada);
+          codigo+=valor.etqF+":\n";
+          codigo+=Generador.getInstance().jmpincondicional(salida);
+          codigo+=salida+":\n";
+          PilaEscape.getInstance().pop();
+
+        return codigo;
+
+        case "DO_WHILE":
+          op = new Operador(this);
+          valor=op.ejecutar(raiz.childs[1],pila,metodo);
+          var entrada=Generador.getInstance().getEtq();
+          var salida=Generador.getInstance().getEtq();
+          PilaEscape.getInstance().push(new NodoEscape(salida,entrada,"while"));
+          //Validar error booleano
+          codigo+=Generador.getInstance().makecomentario("DO WHILE");
+          codigo+=Generador.getInstance().jmpincondicional(valor.etqV);
+          codigo+=entrada+":\n";
+          codigo+=valor.codigo;
+          codigo+=valor.etqV+":\n";
+          codigo+=this.traductor3D(raiz.childs[0],pila,metodo);
+          codigo+=Generador.getInstance().jmpincondicional(entrada);
+          codigo+=valor.etqF+":\n";
+          codigo+=Generador.getInstance().jmpincondicional(salida);
+          codigo+=salida+":\n";
+          PilaEscape.getInstance().pop();
+
+        return codigo;
       }
-    }
+
+      
+
+    
+    return codigo;
   }
 
   verificarmetodo(m,fila,columna){
     var metodo;
     for(var i=0;i<this.mglobal.length;i++){
       metodo=this.mglobal[i];
-      if(metodo.nombre==m.nombre){
+      if(metodo.nombre.toUpperCase()==m.nombre.toUpperCase()){
         if(metodo.parametros.length==m.parametros.length){
           var iguales=true;
           for(var j=0;j<m.parametros.length;j++){
@@ -106,5 +438,176 @@ class Interprete{
   }
   this.mglobal.push(m);
 }
+
+obtenermetodo(id,parametros){
+  var retorno=null;
+     this.mglobal.forEach(metodo => {
+       if(id.toUpperCase()==metodo.nombre.toUpperCase()){
+   
+         if(metodo.parametros.length==parametros.length){
+    
+          var iguales=true;
+          for (let index = 0; index < metodo.parametros.length; index++) {
+            if(metodo.parametros[index].tipo!=parametros[index].tipo){
+              iguales=false;
+              console.log(metodo.parametros[index].tipo);
+              console.log(parametros[index].tipo);
+            }
+          }
+          if(iguales){
+
+            retorno= metodo;
+            
+          }
+         }
+       }
+     });
+     return retorno;
+}
+
+llamada(raiz,pila,metodo){
+  var id = raiz.childs[0].value;
+  var codigo="";
+  var parametros=[];
+  var op = new Operador(this);
+  var temporales=[];
+  var codigoparametros="";
+  raiz.childs[1].childs.forEach(nodo => {
+
+    var resultado=op.ejecutar(nodo,pila,metodo);
+    parametros.push(resultado);
+    codigoparametros+=resultado.codigo;   
+  });
+
+  var metodo_actual = this.obtenermetodo(id,parametros);
+  console.log(metodo);
+  if(metodo_actual===null || metodo_actual===undefined){
+
+  }else{
+    if(!metodo_actual.traducido){
+      var p= new Pila(metodo_actual.nombre);
+      for (let index = 0; index < metodo_actual.parametros.length; index++) {
+        var ref;
+        if(this.esprimtivo(metodo_actual.parametros[index].tipo)){
+          ref=false;
+        }else{
+          ref=true;
+        }
+        console.log('referencia');
+        console.log(ref);
+        p.push(new Simbolo(metodo_actual.parametros[index].nombre,metodo_actual.parametros[index].tipo,"",
+        p.size,ref,metodo_actual.nombre));
+        id=id+"_"+metodo_actual.parametros[index].tipo;
+      }
+      metodo_actual.nombre_traducido=id;
+      metodo_actual.etiqueta=Generador.getInstance().getEtq();
+      metodo_actual.traducido=true;
+      var codtrad = "proc "+id +" begin\n";
+      codtrad+=this.traductor3D(metodo_actual.hijos,p,metodo_actual);
+      codtrad+=metodo_actual.etiqueta+": \n";
+      codtrad=codtrad+"end\n\n"
+      Generador.getInstance().agregarAux(codtrad);
+      
+    }
+
+  
+    var cuentavariables;
+
+    if(metodo===null|| metodo.nombre=="principal"){
+      cuentavariables=pila.size+1;
+    }else{
+      cuentavariables=pila.size+1+metodo_actual.temporales.length;
+    }
+    codigo+=codigoparametros;
+    var cuenta;
+    var conteo=0;
+    if(!(metodo===null|| metodo.nombre=="principal")){
+      codigo+=Generador.getInstance().makecomentario("Reservando Temporales");
+
+      var aux= Generador.getInstance().getTemp();
+      console.log('temporales')
+      console.log(metodo.temporales);
+      metodo.temporales.forEach(element => {
+        codigo+=Generador.getInstance().makecomentario("Guardando el valor en posicion de Reserva");
+        codigo+=Generador.getInstance().getfromP(aux,pila.size+conteo);
+        codigo+=Generador.getInstance().changestack(aux,metodo.temporales[conteo]);   
+        conteo++;
+      });
+     
+    }
+
+    
+   
+
+    var cuentan=2;
+    codigo+=Generador.getInstance().makecomentario("Simulando cambio de ambito");
+    cuenta=Generador.getInstance().getTemp();
+    codigo+=Generador.getInstance().getfromP(cuenta,cuentavariables);
+    var cuentita=0;
+    parametros.forEach(element => {
+      
+      if(this.esprimtivo(element.tipo)){
+        codigo+=Generador.getInstance().makecomentario("Guardando el valor de parametro en la posicion de llamada");
+        codigo+=Generador.getInstance().make3d("+",cuenta,"1",cuenta);
+        codigo+=Generador.getInstance().changestack(cuenta,element.tmp);
+      }else{
+        var auxiliar= Generador.getInstance().getTemp();
+        var nombre=metodo_actual.parametros[cuentita].nombre;
+        var simbolo=pila.obtener(nombre);
+        codigo+=Generador.getInstance().make3d("+",cuenta,"1",cuenta);
+        codigo+=Generador.getInstance().getfromP(auxiliar,simbolo.apuntador);
+        codigo+=Generador.getInstance().changestack(cuenta,auxiliar);
+      }
+      //codigo+=Generador.getInstance().makecomentario("Obteniendo codigo de parametro");
+      //codigo+=element.codigo;
+      cuentita++;
+      cuentan++;
+    });
+
+
+
+    codigo+=Generador.getInstance().makecomentario("Cambio de ambito");
+    codigo+=Generador.getInstance().incP(pila.size+conteo);
+    codigo+=Generador.getInstance().makecall(metodo_actual.nombre_traducido);
+    var tempretorno,aux;
+    aux=Generador.getInstance().getTemp();
+    tempretorno=Generador.getInstance().getTemp();
+    
+    codigo+=Generador.getInstance().getfromP(aux,"1");
+    codigo+=Generador.getInstance().getfromStack(aux,tempretorno);
+    codigo+=Generador.getInstance().decP(pila.size+conteo);
+    if(!(metodo===null|| metodo.nombre=="principal")){
+      codigo+=Generador.getInstance().makecomentario("Recuperando Temporales");
+      var conteo=0;
+      metodo.temporales.forEach(element => {
+        codigo+=Generador.getInstance().getfromP(cuenta,pila.size+conteo);
+        codigo+=Generador.getInstance().getfromStack(cuenta,element);
+        conteo++;
+      });
+      metodo.temporales.push(tempretorno);
+      
+    }
+
+    var resultado= new Nodo3D();
+    resultado.tmp=tempretorno;
+    resultado.codigo=codigo;
+    resultado.tipo=metodo_actual.tipo;
+
+    return resultado;
+    
+
+  }
+}
+
+  esprimtivo(tipo){
+    switch(tipo){
+      case "integer":
+      case "double":
+      case "boolean":
+      case "char":
+        return true;
+      default: return false;
+    }
+  }
 
 }
