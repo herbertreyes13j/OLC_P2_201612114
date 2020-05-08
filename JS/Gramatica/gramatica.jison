@@ -284,7 +284,7 @@ L_LLAMADA: L_LLAMADA Tok_coma P_LLAMADA {$1.addChilds($3);$$=$1;}
 P_LLAMADA: Tok_dolar Tok_ID {$$=new AST_Node("VALOR","VALOR",this._$.first_line,@1.last_column);$$.addChilds(new AST_Node("id",$2,this._$.first_line,@2.last_column));}
           |EXP {$$=$1}
           |Tok_ID Tok_asigna1 EXP {$$= new AST_Node("ASIGNACION","ASIGNACION",this._$.first_line,@1.last_column);
-                                   $$.addChilds(new AST_Node("id",$1,this._$.first_line,@1.last_column),$2);}
+                                   $$.addChilds(new AST_Node("id",$1,this._$.first_line,@1.last_column),$3);}
           |{$$= new AST_Node("VACIO","VACIO",this._$.first_line,@1.last_column)};
 
 PRINT: Tok_print Tok_par1 EXP Tok_par2 Tok_pyc {$$= new AST_Node("PRINT","PRINT",this._$.first_line,@1.last_column); $$.addChilds($3);}

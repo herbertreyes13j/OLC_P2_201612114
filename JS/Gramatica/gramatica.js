@@ -259,7 +259,7 @@ this.$=new AST_Node("VALOR","VALOR",this._$.first_line,_$[$0-1].last_column);thi
 break;
 case 92:
 this.$= new AST_Node("ASIGNACION","ASIGNACION",this._$.first_line,_$[$0-2].last_column);
-                                   this.$.addChilds(new AST_Node("id",$$[$0-2],this._$.first_line,_$[$0-2].last_column),$$[$0-1]);
+                                   this.$.addChilds(new AST_Node("id",$$[$0-2],this._$.first_line,_$[$0-2].last_column),$$[$0]);
 break;
 case 93:
 this.$= new AST_Node("VACIO","VACIO",this._$.first_line,_$[$0].last_column)

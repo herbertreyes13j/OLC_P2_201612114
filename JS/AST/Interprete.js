@@ -148,17 +148,24 @@ class Interprete{
             simbolo=this.global.obtener(id);
           }
           if(simbolo!=null){
-            if(simbolo.referencia){
-
+            if(simbolo.referencia &&!(metodo===null || metodo.nombre=="principal")){
+              codigo+=valor.codigo;
+              console.log("Haciendo por referencia");
+              var tmpx=Generador.getInstance().getTemp();
+              codigo+=Generador.getInstance().getfromP(tmpx,simbolo.apuntador);
+              var aux= Generador.getInstance().getTemp();
+              var tempo=Generador.getInstance().getTemp();
+              codigo+=Generador.getInstance().getfromStack(tmpx,aux);
+              codigo+=Generador.getInstance().changestack(aux,valor.tmp);
             }else{
-              
+              codigo+=Generador.getInstance().makecomentario("Haciendo Asignacion de: "+id);
+              codigo+=valor.codigo;
+              var etq=Generador.getInstance().getTemp();
+              codigo+=Generador.getInstance().getfromP(etq,simbolo.apuntador);
+              codigo+=Generador.getInstance().changestack(etq,valor.tmp);
             }
             //Recordar verificar tipos y la gran
-            codigo+=Generador.getInstance().makecomentario("Haciendo Asignacion de: "+id);
-            codigo+=valor.codigo;
-            var etq=Generador.getInstance().getTemp();
-            codigo+=Generador.getInstance().getfromP(etq,simbolo.apuntador);
-            codigo+=Generador.getInstance().changestack(etq,valor.tmp);
+            
           }else{
             //Error
           }
@@ -439,25 +446,54 @@ class Interprete{
   this.mglobal.push(m);
 }
 
-obtenermetodo(id,parametros){
+obtenermetodo(id,parametros,simbolos){
   var retorno=null;
+  var nuevalista=[];
+  var nuevoparametro=[];
      this.mglobal.forEach(metodo => {
        if(id.toUpperCase()==metodo.nombre.toUpperCase()){
-   
+
+        var iguales=true;
          if(metodo.parametros.length==parametros.length){
-    
-          var iguales=true;
-          for (let index = 0; index < metodo.parametros.length; index++) {
-            if(metodo.parametros[index].tipo!=parametros[index].tipo){
-              iguales=false;
-              console.log(metodo.parametros[index].tipo);
-              console.log(parametros[index].tipo);
+          if(simbolos.length>0){
+            for (let index = 0; index < metodo.parametros.length; index++) {
+                  var cuenta=0;
+                  var encontro=false;
+                  simbolos.forEach(element => {
+          
+                    if(element.nombre.toUpperCase()==metodo.parametros[index].nombre.toUpperCase() && element.tipo==metodo.parametros[index].tipo){
+               
+                      nuevalista.push(simbolos[cuenta]);
+                      nuevoparametro.push(parametros[cuenta]);
+                      encontro=true;
+                    }
+                    cuenta++;
+                  }); 
+                  if(encontro==false){iguales=false;};
+            }
+          }else{
+            for (let index = 0; index < metodo.parametros.length; index++) {
+              if(metodo.parametros[index].tipo!=parametros[index].tipo){
+                  iguales=false;
+              }
             }
           }
+          
           if(iguales){
+            if(simbolos.length>0 && simbolos.length==metodo.parametros.length){
+              for (let index = 0; index < parametros.length; index++) {
+                parametros[index] = nuevoparametro[index]; 
+              }
+              retorno= metodo;
+            }else if(simbolos.length==0 && parametros.length==metodo.parametros.length){
+              retorno= metodo;
 
-            retorno= metodo;
+            }else{
+              console.log('ERROR GRAVE CON METODOS');
+            }
             
+          }else{
+            console.log('error');
           }
          }
        }
@@ -472,15 +508,31 @@ llamada(raiz,pila,metodo){
   var op = new Operador(this);
   var temporales=[];
   var codigoparametros="";
+  var simbolos=[];
   raiz.childs[1].childs.forEach(nodo => {
-
-    var resultado=op.ejecutar(nodo,pila,metodo);
-    parametros.push(resultado);
-    codigoparametros+=resultado.codigo;   
+    
+    var cuentanombre=0;
+    var cuentaparametro=0;
+    if(nodo.tag=="ASIGNACION"){
+      var resultado=op.ejecutar(nodo.childs[1],pila,metodo);
+      parametros.push(resultado);
+      var s= new Simbolo(nodo.childs[0].value,resultado.tipo,"","",false,"");
+      simbolos.push(s);
+      codigoparametros+=resultado.codigo;
+      cuentanombre++;
+    }else{
+      var resultado=op.ejecutar(nodo,pila,metodo);
+      parametros.push(resultado);
+      codigoparametros+=resultado.codigo;
+      cuentaparametro++;  
+    }
+     
   });
 
-  var metodo_actual = this.obtenermetodo(id,parametros);
-  console.log(metodo);
+
+
+  var metodo_actual = this.obtenermetodo(id,parametros,simbolos);
+
   if(metodo_actual===null || metodo_actual===undefined){
 
   }else{
@@ -490,6 +542,8 @@ llamada(raiz,pila,metodo){
         var ref;
         if(this.esprimtivo(metodo_actual.parametros[index].tipo)){
           ref=false;
+        }else if (simbolos.length>1){
+          ref = false;
         }else{
           ref=true;
         }
@@ -546,7 +600,12 @@ llamada(raiz,pila,metodo){
     var cuentita=0;
     parametros.forEach(element => {
       
-      if(this.esprimtivo(element.tipo)){
+      if(simbolos.length>0){
+        codigo+=Generador.getInstance().makecomentario("Guardando el valor de parametro en la posicion de llamada");
+        codigo+=Generador.getInstance().make3d("+",cuenta,"1",cuenta);
+        codigo+=Generador.getInstance().changestack(cuenta,element.tmp);
+      }
+      else if(this.esprimtivo(element.tipo)){
         codigo+=Generador.getInstance().makecomentario("Guardando el valor de parametro en la posicion de llamada");
         codigo+=Generador.getInstance().make3d("+",cuenta,"1",cuenta);
         codigo+=Generador.getInstance().changestack(cuenta,element.tmp);

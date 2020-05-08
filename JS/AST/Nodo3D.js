@@ -8,6 +8,7 @@ class Nodo3D{
         this.comentario="";
         this.dimensiones=0;
         this.op_rel="";
+        this.necesitareferencia=false;
     }
 
     setComentario(c1,c2,c3){

@@ -101,7 +101,7 @@ class Operador{
                 if(simbolo!=null){
                     console.log('El simbolo')
                     console.log(simbolo);
-                    if(simbolo.referencia==false){
+                    if(simbolo.referencia==false || metodo===null ||metodo.nombre=="principal"){
                         tmpx= Generador.getInstance().getTemp();
                         Resultado.codigo= Generador.getInstance().getfromP(tmpx,simbolo.apuntador);
                         Resultado.tmp= Generador.getInstance().getTemp();
@@ -118,6 +118,7 @@ class Operador{
                         Resultado.codigo+=Generador.getInstance().getfromStack(aux,Resultado.tmp);
                         Resultado.tipo=simbolo.tipo;
                         Resultado.comentario=simbolo.nombre;
+                        Resultado.necesitareferencia=true;
                         console.log('eL RESULTADO');
                         console.log(Resultado);
                     }
@@ -288,8 +289,10 @@ class Operador{
             res.codigo += Generador.getInstance().changeheap('H','-1');
             res.codigo += Generador.getInstance().incheap('1');
             res.comentario = R1.comentario + R2.comentario;
-            metodo.temporales.push(res.tmp);
-            return res;
+            if(!(metodo===null || metodo===undefined||metodo.nombre=="principal")){
+                metodo.temporales.push(Resultado.tmp);
+            }
+             return res;
         }
 
         aritmetico(R1,R2,fila,columna,op,metodo){
