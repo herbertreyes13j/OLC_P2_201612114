@@ -223,7 +223,7 @@ DECLARACION_2: Tok_var Tok_ID Tok_asigna2 EXP  {$$=new AST_Node("DECLARACION2","
 
 ASIGNACION: Tok_ID Tok_asigna1 EXP {$$=new AST_Node("ASIGNACION","ASIGNACION",this._$.first_line,@1.last_column); 
                                             $$.addChilds(new AST_Node("id",$1,this._$.first_line,@1.last_column),$3);}
-            |ACCESOS Tok_asigna1 EXP {$$= new AST_Node("ASIGNACION","ASIGNACION",this._$.first_line,@1.last_column);
+            |ACCESOS Tok_asigna1 EXP {$$= new AST_Node("ASIGNACION_ACCESO","ASIGNACION_ACCESO",this._$.first_line,@1.last_column);
                                             $$.addChilds($1,$3)};   
 
 
@@ -281,7 +281,8 @@ L_LLAMADA: L_LLAMADA Tok_coma P_LLAMADA {$1.addChilds($3);$$=$1;}
           |P_LLAMADA {$$= new AST_Node("PARAMETROS","PARAMETROS",this._$.first_line,@1.last_column);$$.addChilds($1)};
 
 
-P_LLAMADA: Tok_dolar Tok_ID {$$=new AST_Node("VALOR","VALOR",this._$.first_line,@1.last_column);$$.addChilds(new AST_Node("id",$2,this._$.first_line,@2.last_column));}
+P_LLAMADA: Tok_dolar Tok_ID {$$=new AST_Node("VALOR","VALOR",this._$.first_line,@1.last_column);var aux = new AST_Node("EXP","EXP",this._$.first_line,@2.last_column);
+                             aux.addChilds(new AST_Node("id",$2,this._$.first_line,@2.last_column)); $$.addChilds(aux);}
           |EXP {$$=$1}
           |Tok_ID Tok_asigna1 EXP {$$= new AST_Node("ASIGNACION","ASIGNACION",this._$.first_line,@1.last_column);
                                    $$.addChilds(new AST_Node("id",$1,this._$.first_line,@1.last_column),$3);}
@@ -327,13 +328,14 @@ FINAL: EXP {$$=new AST_Node("FINAL","FINAL",this._$.first_line,@1.last_column);$
       |{$$=new AST_Node("FINAL","FINAL",this._$.first_line,@1.last_column);};
 
 STRUCTURA: Tok_define Tok_ID Tok_as Tok_cor1 LISTA_ATRIBUTOS Tok_cor2 
-           {$$=new AST_Node("ESTRUCTURA","ESTRUCTURA,this._$.first_line,@1.last_column"); $$.addChilds(new AST_Node("id",$2,this._$.first_line,@2.last_column),$5);};
+           {$$=new AST_Node("ESTRUCTURA","ESTRUCTURA",this._$.first_line,@1.last_column); $$.addChilds(new AST_Node("id",$2,this._$.first_line,@2.last_column),$5);};
 
 LISTA_ATRIBUTOS: LISTA_ATRIBUTOS Tok_coma ATRIBUTO {$1.addChilds($3);$$=$1}
                 |ATRIBUTO{$$=new AST_Node("ATRIBUTOS","ATRIBUTOS",this._$.first_line,@1.last_column);$$.addChilds($1)};
 
 ATRIBUTO: TIPO Tok_ID  {$$=new AST_Node("ATRIBUTO","ATRIBUTO",this._$.first_line,@1.last_column);$$.addChilds($1,new AST_Node("id",$2,this._$.first_line,@2.last_column));}
-         |ASIGNACION   {$$=new AST_Node("ATRIBUTO","ATRIBUTO",this._$.first_line,@1.last_column);$$.addChilds($1)}
+         |TIPO Tok_ID Tok_asigna1 EXP   {$$=new AST_Node("ATRIBUTO","ATRIBUTO",this._$.first_line,@1.last_column);
+         var aux = new AST_Node("DECLARACION","DECLARACION",this._$.first_line,@1.last_column);aux.addChilds($1,new AST_Node("id",$2,this._$.first_line,@2.last_column),$4); $$.addChilds(aux)}
          |ASIGNACION_ARREGLO {$$=new AST_Node("ATRIBUTO","ATRIBUTO",this._$.first_line,@1.last_column);$$.addChilds($1)};
 
 
@@ -378,7 +380,7 @@ EXP: EXP Tok_mas EXP                    {$$= new AST_Node("EXP","EXP",this._$.fi
 
 ACCESO_ARREGLO:Tok_ID Tok_cor1 EXP Tok_cor2 {$$= new AST_Node("ACCESO_ARREGLO","ACCESO_ARREGLO",this._$.first_line,@1.last_column);
                                             $$.addChilds(new AST_Node("id",$1,this._$.first_line,@1.last_column),$3)}
-              |LLAMADA Tok_cor1 EXP Tok_cor2 {$$=new AST_Node("ACCESO_LLAMADA","ACCESO_LLAMADA,this._$.first_line,@1.last_column");
+              |LLAMADA Tok_cor1 EXP Tok_cor2 {$$=new AST_Node("ACCESO_LLAMADA","ACCESO_LLAMADA",this._$.first_line,@1.last_column);
                                              $$.addChilds($1,$3);};
 
 INCIALIZACION_ARREGLO: Tok_ID Tok_cor1 EXP Tok_cor2 {$$=new AST_Node("INICIALIZACION","INICIALIZACION",this._$.first_line,@1.last_column);

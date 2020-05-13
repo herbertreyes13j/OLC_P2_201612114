@@ -3,13 +3,14 @@ class Interprete{
   constructor(){
     this.global = new Pila("global");
     this.mglobal = [];
+    this.estructuras=[];
     Generador.getInstance().reiniciar();
   }
 
   analizar(raiz){
 
     this.primerapasada(raiz);
-    this.traductor3D(raiz,this.global,null);
+    return this.traductor3D(raiz,this.global,null);
 
   }
   
@@ -86,7 +87,7 @@ class Interprete{
         codigo+=aux;
         codigo+=etq+':\n';
         console.log(codigo);
-        break;
+        return codigo;
         case "SENTENCIAS":
           
           for(var i =0; i<raiz.childs.length;i++){
@@ -109,7 +110,9 @@ class Interprete{
            if(nodo.childs[0].tag=="TIPO"){
             tipo=nodo.childs[0].value;
            }else{
-
+              if(nodo.childs[0].tag=="ARREGLO"){
+                tipo = "arreglo";
+              }
            }
         op = new Operador(this);
         var valor = op.ejecutar(nodo.childs[2],pila,metodo);
@@ -121,8 +124,32 @@ class Interprete{
           }else{
               ref=true;
           }
-          s = new Simbolo(nodo.childs[1].childs[j].value,valor.tipo,pila.ambito,
-               pila.size,ref,pila.ambito);
+          if(this.esprimtivo(tipo)||tipo=="string"){
+            
+            s = new Simbolo(nodo.childs[1].childs[j].value,valor.tipo,pila.ambito,
+              pila.size,ref,pila.ambito);
+         
+          }else if (tipo=="arreglo"){
+            tipo="arr_"+nodo.childs[0].value.toLowerCase();
+            if(valor.tipo=="lista"){
+              var temp = Generador.getInstance().getTemp();
+              valor.codigo+=Generador.getInstance().getfromP(temp,pila.size);
+              valor.codigo+=Generador.getInstance().changestack(temp,valor.tmp);
+            }else{
+              
+              var temp= Generador.getInstance().getTemp();
+              valor.codigo+=Generador.getInstance().getfromP(temp,pila.size);
+              valor.codigo+=Generador.getInstance().changestack(temp,valor.tmp);
+            }
+            s = new Simbolo(nodo.childs[1].childs[j].value,tipo,pila.ambito,pila.size,ref,pila.ambito);
+          }else{
+            var est = this.obtenerestructura(tipo);
+            if(est==null){
+
+            }
+            s = new Simbolo(nodo.childs[1].childs[j].value,tipo,pila.ambito,pila.size,ref,pila.ambito);
+          }
+         
           if(!pila.push(s)){
             L_Error.getInstance().insertar(new N_Error("Semantico","Variable \""+s.nombre+"\" ya esta definida",
                                            nodo.childs[1].childs[j].fila,nodo.childs[1].childs[j].columna));
@@ -413,13 +440,213 @@ class Interprete{
           PilaEscape.getInstance().pop();
 
         return codigo;
+          
+        case "ESTRUCTURA":
+          var id = raiz.childs[0].value;
+          op = new Operador(this);
+          
+          codigo+="proc strc_"+id.toLowerCase() +" begin \n";
+          var est=new Estructura(id);
+          var posp=Generador.getInstance().getTemp();
+          var posh=Generador.getInstance().getTemp();
+          codigo+=Generador.getInstance().getfromP(posp,"0");
+          codigo+=Generador.getInstance().getfromStack(posp,posh);
+          codigo+=Generador.getInstance().incheap(raiz.childs[1].childs.length);
+          var aux=Generador.getInstance().getTemp();
+          var cuenta=0;
+          raiz.childs[1].childs.forEach(element => {
+            if(element.childs[0].value=="DECLARACION"){
+              valor=op.ejecutar(element.childs[0].childs[2],pila,metodo);
+              var at = new Atributo(element.childs[0].childs[1].value,cuenta,element.childs[0].childs[0].value);
+              est.insertar(at);
+              codigo+=Generador.getInstance().makecomentario("Atributo por Defecto");
+              codigo+=valor.codigo;
+              codigo+=Generador.getInstance().make3d("+",posh,cuenta,aux);
+              codigo+=Generador.getInstance().changeheap(aux,valor.tmp);
+              
+              cuenta++;
+            }else{
+              var at = new Atributo(element.childs[1].value,cuenta,element.childs[0].value);
+              codigo+=Generador.getInstance().make3d("+",posh,cuenta,aux);
+              switch(at.tipo){
+                case "integer":
+                case "boolean":
+                  codigo+=Generador.getInstance().changeheap(aux,0);
+                  break;
+                case "double":
+                  codigo+=Generador.getInstance().changeheap(aux,'0.0');
+                  break;
+                case "char":
+                  codigo+=Generador.getInstance().changeheap(aux,'\0');
+                  break;
+                default:
+                  codigo+=Generador.getInstance().changeheap(aux,-11000000000);
+                  break;
+              }
+              est.insertar(at);
+              cuenta++;
+            }
+          });
+
+        
+        codigo+="end\n\n"
+        Generador.getInstance().agregarAux(codigo);
+        codigo="";  
+        return codigo;  
+
+        case "ASIGNACION_ARREGLO":
+          return this.asignacionarreglo(raiz,pila,metodo);
       }
+
+    
 
       
 
     
     return codigo;
   }
+
+  asignacionarreglo(raiz,pila,metodo){
+    
+    var op  = new Operador(this);
+    var codigo="";
+    var temp1 = Generador.getInstance().getTemp();
+    var res1 = this.accesoarreglo(raiz.childs[0],pila,metodo);
+    var res2 = op.ejecutar(raiz.childs[1],pila,metodo);
+    codigo+=res1.codigo;
+    codigo+=res2.codigo;
+    codigo+=Generador.getInstance().makecomentario("Haciendo asignacion de arreglo");
+    console.log('ANALIZANDO');
+    console.log(res2);
+    codigo+=Generador.getInstance().changeheap(res1.tmp,res2.tmp);
+    return codigo;
+    
+
+
+  }
+
+  accesoarreglo(raiz,pila,metodo){
+    
+    if(raiz.childs[0].tag=="id"){
+      var simbolo=null;
+      var operador=new Operador(this);
+      var indice= operador.ejecutar(raiz.childs[1]);
+      var Resultado= new Nodo3D();
+      simbolo=pila.obtener(raiz.childs[0].value);
+
+      if(simbolo==null)simbolo=this.global.obtener(raiz.childs[0].value);
+
+      if(simbolo==null){
+        //error
+      }
+      console.log('simbolo');
+      console.log(simbolo);
+      if(simbolo.tipo.includes("arr_")){
+        var temp = Generador.getInstance().getTemp();
+        Resultado.tmp= Generador.getInstance().getTemp();
+        Resultado.codigo=Generador.getInstance().getfromP(temp,simbolo.apuntador);
+        Resultado.codigo+=Generador.getInstance().getfromStack(temp,temp);
+        Resultado.codigo+=Generador.getInstance().make3d("+",temp,"1",temp);
+        Resultado.codigo+=Generador.getInstance().make3d("+",temp,indice.tmp,Resultado.tmp);
+        Resultado.tipo=simbolo.tipo.replace("arr_","");
+        return Resultado; 
+        
+      }else{
+        //Error
+      }
+
+    }else{
+
+    }
+  }
+  
+
+  inicializacion(raiz,pila,metodo){
+    var tipo = raiz.childs[0].value;
+    var op = new Operador(this);
+    var res=op.ejecutar(raiz.childs[1],pila,metodo);
+    var defecto="";
+    switch(tipo){
+      case "double":
+        defecto="0.0";
+      break;
+      case "integer":
+      case "boolean":
+        defecto="0";
+        break;
+      case "char":
+        defecto='\0';
+        break;
+      default:
+        defecto="-11000000000"
+        break;
+    }
+    
+    console.log(defecto);
+    var codigo="";
+    var Resultado= new Nodo3D();
+    Resultado.tmp=Generador.getInstance().getTemp();
+    codigo+=res.codigo;
+    codigo+=Generador.getInstance().getpunteroh(Resultado.tmp);
+    codigo+=Generador.getInstance().changeheap(Resultado.tmp,res.tmp);
+    codigo+=Generador.getInstance().incheap(res.tmp);
+    codigo+=Generador.getInstance().incheap(1);
+
+    var aux = Generador.getInstance().getTemp();
+    var aux2= Generador.getInstance().getTemp();
+    codigo+=Generador.getInstance().make3d("+",Resultado.tmp,"1",aux);
+    codigo+=Generador.getInstance().make3d("+",aux,res.tmp,aux2);
+    var sentencias=Generador.getInstance().changeheap(aux,defecto);
+    sentencias+=Generador.getInstance().make3d("+",aux,"1",aux);
+    codigo+=Generador.getInstance().generar_while(aux,"<",aux2,sentencias);
+
+    Resultado.codigo=codigo;
+    Resultado.tipo="arr_"+tipo;
+    return Resultado;
+    
+    
+
+
+  }
+  accesos(raiz,pila,metodo){
+    var Resultado = new Nodo3D();
+    var simbolo;
+    if(raiz.childs[0].tag=="id"){
+      simbolo=pila.obtener(raiz.childs[0].value);
+      if(simbolo==null){
+        this.global.obtener(raiz.childs[0].value);
+      }
+    }
+
+    console.log(typeof simbolo);
+
+    array.forEach(element => {
+      
+    });
+
+  }
+
+  instancia(id,pila){
+    
+    var Resultado = new Nodo3D();
+    var metodo= this.obtenerestructura(id);
+    if(metodo==null){
+
+    }
+    Resultado.codigo+=Generador.getInstance().makecomentario("INICIANDO INSTANCIA DE "+id);
+    Resultado.tmp = Generador.getInstance().getTemp();
+    Resultado.codigo+=Generador.getInstance().getpunteroh(Resultado.tmp);
+    var aux = Generador.getInstance().getTemp();
+    Resultado.codigo+=Generador.getInstance().getfromP(aux,pila.size);
+    Resultado.codigo+=Generador.getInstance().changestack(aux,Resultado.tmp);
+    Resultado.codigo+=Generador.getInstance().incP(pila.size);
+    Resultado.codigo+=Generador.getInstance().makecall("strc_"+id.toLowerCase());
+    Resultado.codigo+=Generador.getInstance().decP(pila.size);
+
+    Resultado.tipo=id.toLowerCase();
+    return Resultado;
+  }
+
 
   verificarmetodo(m,fila,columna){
     var metodo;
@@ -520,6 +747,12 @@ llamada(raiz,pila,metodo){
       simbolos.push(s);
       codigoparametros+=resultado.codigo;
       cuentanombre++;
+    }else if(nodo.tag=="VALOR"){
+      var resultado=op.ejecutar(nodo.childs[0],pila,metodo);
+      resultado.necesitareferencia=false;
+      parametros.push(resultado);
+      codigoparametros+=resultado.codigo;
+      cuentaparametro++;  
     }else{
       var resultado=op.ejecutar(nodo,pila,metodo);
       parametros.push(resultado);
@@ -542,9 +775,14 @@ llamada(raiz,pila,metodo){
         var ref;
         if(this.esprimtivo(metodo_actual.parametros[index].tipo)){
           ref=false;
+
         }else if (simbolos.length>1){
           ref = false;
-        }else{
+        }else if(parametros[index].tipo=="string" && parametros[index].necesitareferencia==false){
+          ref = false;
+          console.log(parametros[index]);   
+        }
+        else{
           ref=true;
         }
         console.log('referencia');
@@ -601,6 +839,10 @@ llamada(raiz,pila,metodo){
     parametros.forEach(element => {
       
       if(simbolos.length>0){
+        codigo+=Generador.getInstance().makecomentario("Guardando el valor de parametro en la posicion de llamada");
+        codigo+=Generador.getInstance().make3d("+",cuenta,"1",cuenta);
+        codigo+=Generador.getInstance().changestack(cuenta,element.tmp);
+      }else if(element.tipo=="string" && element.necesitareferencia==false){
         codigo+=Generador.getInstance().makecomentario("Guardando el valor de parametro en la posicion de llamada");
         codigo+=Generador.getInstance().make3d("+",cuenta,"1",cuenta);
         codigo+=Generador.getInstance().changestack(cuenta,element.tmp);
@@ -669,4 +911,26 @@ llamada(raiz,pila,metodo){
     }
   }
 
+  obtenerestructura(nombre){
+    var retorno=null;
+    this.estructuras.forEach(element => {
+      if(element.nombre.toUpperCase()==nombre.toUpperCase()){
+        retorno=element;
+        return element;
+      }
+    });
+    return retorno;
+  }
+
+  insertarestructura(estructura){
+    this.estructuras.forEach(element => {
+      if(element.nombre.toUpperCase()==estructura.nombre.toUpperCase()){
+        return false;
+      }   
+    });
+
+    this.estructuras.push(estructura);
+    return true;
+  }
 }
+

@@ -29,11 +29,17 @@ function appendTab(tab, nombre, contenido) {
   if (!$("#tab-" + tn).length) {
 
     t.find('#tAdd').remove();
+    
     t.append('<a class="item tab" data-tab="' + tn + '" id="tab-' + tn + '">' + n + ' <i class="close icon btnx" id="btnx-' + tn + '"></i></a>')
       .append('<a class="item tabx" id="tAdd"><i class="add square icon"></i></a>');
 
     tt.append('<div class="ui tab tabc segment" data-tab="' + tn + '" id="tab-c-' + tn + '">'+'<textarea id="editor'+numberTabs+'"></textarea>' + 
-    '<br><button onclick="final(veditor'+numberTabs+',consola'+numberTabs+')">Analizar</button><br>'+'<br><textarea id="consola'+numberTabs+'"></textarea>'+' </div>')
+    '<br>'+
+    '<nav class="navbar navbar-dark bg-dark"><form>'
+    +'<a href="" id="a"><button  class="btn btn-outline-success" type="button"  onclick="final(veditor'+numberTabs+',consola'+numberTabs+')">Analizar</button></a>'+
+    '<button class="btn btn-outline-success" type="button"  onclick="openFile(veditor'+numberTabs+')">Abrir Archivo</button>'+
+    '</form></nav>'+
+    '<br>'+'<br><textarea id="consola'+numberTabs+'"></textarea>'+' </div>')
     $('#tabs .menu .tab').tab({});
 
     var script= document.createElement("script");
@@ -57,12 +63,16 @@ function final(id,consola){
       var resultado= gramatica.parse(id.getValue()); 
       
        console.log(imprimir(resultado));
+       UpdateGraphviz(imprimir(resultado));
        var interprete = new Interprete();
-       interprete.analizar(resultado);
-       consola.value=L_Error.getInstance().getErrores();
+      var texto= interprete.analizar(resultado);
+      download(texto, 'Codigo3DGenerado.txt', 'text/plain')
+      consola.value=L_Error.getInstance().getErrores();
     }catch(error){
         consola.value=L_Error.getInstance().getErrores();
         console.log(error);
+        download(error,'Archivo con errores','text/plain')
+        return;
     }
 }
 
@@ -134,3 +144,49 @@ function deleteTab(tab, nombre) {
     }
   }
   //--------------------------------------
+
+
+  function clickElem(elem) {
+    // Thx user1601638 on Stack Overflow (6/6/2018 - https://stackoverflow.com/questions/13405129/javascript-create-and-save-file )
+    var eventMouse = document.createEvent("MouseEvents")
+    eventMouse.initMouseEvent("click", true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null)
+    elem.dispatchEvent(eventMouse)
+  }
+  function openFile(id) {
+    readFile = function(e) {
+      var file = e.target.files[0];
+      if (!file) {
+        return;
+      }
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        var contents = e.target.result;
+        id.setValue(contents);
+        document.body.removeChild(fileInput)
+      }
+      reader.readAsText(file)
+    }
+    fileInput = document.createElement("input")
+    fileInput.type='file'
+    fileInput.style.display='none'
+    fileInput.onchange=readFile
+   
+    document.body.appendChild(fileInput)
+    clickElem(fileInput)
+  }
+
+  function download(text, name, type) {
+    var a = document.getElementById("a");
+   
+    var file = new Blob([text], {type: type});
+    a.href = URL.createObjectURL(file);
+    a.download = name;
+  }
+  var svg_div = jQuery('#graphviz_svg_div');
+  function UpdateGraphviz(dot) {
+    svg_div.html("");
+      var data = dot;
+      // Generate the Visualization of the Graph into "svg".
+      var svg = Viz(data, "svg");
+      svg_div.html("<hr>"+svg);
+    }

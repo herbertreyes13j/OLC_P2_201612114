@@ -107,6 +107,9 @@ class Operador{
                         Resultado.tmp= Generador.getInstance().getTemp();
                         Resultado.codigo+= Generador.getInstance().getfromStack(tmpx,Resultado.tmp);
                         Resultado.tipo=simbolo.tipo;
+                        if(Resultado.tipo=="string"){
+                            Resultado.necesitareferencia=true;
+                        }
                         Resultado.comentario=simbolo.nombre;
                     }else{
                         console.log("Haciendo por referencia");
@@ -129,7 +132,7 @@ class Operador{
                     
                     return Resultado;
                 }else{
-                    L_Error.getInstance().insertar(new Error("Semantico","Variable \""+raiz.value+"\" no existe",raiz.fila,raiz.columna));
+                    L_Error.getInstance().insertar(new N_Error("Semantico","Variable \""+raiz.value+"\" no existe",raiz.fila,raiz.columna));
                     Resultado.tipo="error";
                     return Resultado;
                 }
@@ -204,7 +207,38 @@ class Operador{
                 return Resultado;
                 case "LLAMADA":          
                     return this.interprete.llamada(raiz,pila,metodo);
-    
+                case "LISTA":
+                    Resultado = new Nodo3D();
+                    Resultado.tipo="lista";
+                    var elementos=[];
+                    raiz.childs[0].childs.forEach(element => {
+                       var aux= this.ejecutar(element,pila,metodo);
+                       elementos.push(aux);
+                       Resultado.codigo+=aux.codigo;
+                    });
+                    Resultado.tmp=Generador.getInstance().getTemp();
+                    Resultado.codigo+=Generador.getInstance().getpunteroh(Resultado.tmp);
+                    Resultado.codigo+=Generador.getInstance().changeheap(Resultado.tmp,elementos.length);
+                    Resultado.codigo+=Generador.getInstance().incheap(elementos.length+1);
+                    
+                    var aux = Generador.getInstance().getTemp();
+                    Resultado.codigo+=Generador.getInstance().make3d("+",Resultado.tmp,"1",aux);
+                    elementos.forEach(element => {
+                        Resultado.codigo+=Generador.getInstance().changeheap(aux,element.tmp);
+                        Resultado.codigo+=Generador.getInstance().make3d("+",aux,"1",aux);
+                    });
+                    return Resultado;
+                case "INICIALIZACION":
+                    return this.interprete.inicializacion(raiz,pila,metodo);
+
+                case "INSTANCIA":
+
+                return this.interprete.instancia(raiz.childs[0].childs[0].value,pila);
+
+                case "ACCESO_ARREGLO":
+                    Resultado=this.interprete.accesoarreglo(raiz,pila,metodo);
+                    Resultado.codigo+=Generador.getInstance().getheap(Resultado.tmp,Resultado.tmp);
+                    return Resultado;
             default:
                 break;
         }
@@ -312,9 +346,11 @@ class Operador{
             }else{
                 if(op=="/")res.tipo="double";
                 res.tmp=Generador.getInstance().getTemp();
-                metodo.temporales.push(res.tmp);
+                if(!(metodo===null || metodo===undefined||metodo.nombre=="principal")){
+                    metodo.temporales.push(Resultado.tmp);
+                }
                 res.codigo=R1.codigo+R2.codigo;
-                res.codigo+=Generador.getInstance().makecomentario("Realizando operacion: "+R1.tmp+"+"+R2.tmp);
+                res.codigo+=Generador.getInstance().makecomentario("Realizando operacion: "+R1.tmp+" "+op+" "+R2.tmp);
                 res.codigo+=Generador.getInstance().make3d(op,R1.tmp,R2.tmp,res.tmp);
                 return res;
             }
@@ -701,8 +737,7 @@ class Operador{
         }
 
         gettipo(tipo1,tipo2){
-            console.log(tipo1);
-            console.log(tipo2);
+   
             switch(tipo1){
                 case "integer":
                     switch(tipo2){
@@ -772,8 +807,6 @@ class Operador{
             codigo+=Generador.getInstance().getheap(temp1,temp2);
             codigo+=Generador.getInstance().jmpincondicional(etq0);
             codigo+=etq2+": \n";
-
-
             return codigo;
         }
     }
